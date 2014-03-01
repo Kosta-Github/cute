@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <cassert>
+#include <chrono>
 #include <cstddef>
 #include <functional>
 #include <iostream>
@@ -16,19 +17,22 @@
 #include <stdexcept>
 #include <string>
 
-#define CUTE_EXPECT(expr) \
+#define CUTE_EXPECT_IMPL(EXPR_EVAL, EXPR_TEXT, FILE, LINE) \
     try { \
         ++cute::context::current().checks_performed; \
-        if(!(expr)) { \
-            throw cute::detail::exception("check failed", #expr, CUTE_LOCATION); \
+        if(!(EXPR_EVAL)) { \
+            throw cute::detail::exception("check failed", EXPR_TEXT, FILE, LINE); \
         } \
     } catch(cute::detail::exception const&) { \
         throw; \
     } catch(std::exception const &ex) { \
-        throw cute::detail::exception("unexpected exception with message \"" + std::string(ex.what()) + "\"", #expr, CUTE_LOCATION); \
+        throw cute::detail::exception("got an unexpected exception with message \"" + std::string(ex.what()) + "\"", EXPR_TEXT, FILE, LINE); \
     } catch(...) { \
-        throw cute::detail::exception("unexpected exception of unknown type", #expr, CUTE_LOCATION); \
+        throw cute::detail::exception("got an unexpected exception of unknown type", EXPR_TEXT, FILE, LINE); \
     }
+
+#define CUTE_EXPECT(EXPR) CUTE_EXPECT_IMPL(EXPR, #EXPR, __FILE__, __LINE__)
+#define CUTE_EXPECT_NO_THROW(EXPR) CUTE_EXPECT_IMPL(((void)(EXPR), true), #EXPR, __FILE__, __LINE__)
 
 #define CUTE_EXPECT_THROWS_AS(expr, excpt) \
     for(;;) { \
@@ -39,37 +43,22 @@
             break; \
         } catch(...) { \
         } \
-        throw cute::detail::exception("didn't get expected exception of type \"" #excpt "\"", #expr, CUTE_LOCATION); \
+        throw cute::detail::exception("didn't get an expected exception of type \"" #excpt "\"", #expr, __FILE__, __LINE__); \
     }
 
 #define CUTE_EXPECT_THROWS(expr) CUTE_EXPECT_THROWS_AS(expr, std::exception)
-#define CUTE_EXPECT_NO_THROW(expr) CUTE_EXPECT(((void)(expr), true))
-#define CUTE_LOCATION cute::location(__FILE__, __LINE__)
-#define CUTE_TEST_CASE(...) CUTE_LOCATION, __VA_ARGS__, []()
+#define CUTE_TEST_CASE(...) __FILE__, __LINE__, __VA_ARGS__, []()
+
 namespace cute {
-
-    struct location {
-        std::string const file;
-        int const line;
-
-        inline location(std::string file_, int line_) : file(std::move(file_)), line(std::move(line_)) { }
-    };
-
-    inline std::ostream& operator<<(std::ostream& os, location const& loc) {
-#if defined(__GNUG__)
-        return (os << loc.file << ":" << loc.line);
-#else // defined(__GNUG__)
-        return (os << loc.file << "(" << loc.line << ")");
-#endif // defined(__GNUG__)
-    }
 
     namespace detail {
 
         struct exception : std::runtime_error {
             std::string const expr;
-            location const loc;
+            std::string const file;
+            int const line;
 
-            inline exception(std::string msg_, std::string expr_, location loc_) : std::runtime_error(std::move(msg_)), expr(std::move(expr_)), loc(std::move(loc_)) { }
+            inline exception(std::string msg_, std::string expr_, std::string file_, int line_) : std::runtime_error(std::move(msg_)), expr(std::move(expr_)), file(std::move(file_)), line(std::move(line_)) { }
         };
 
         template<typename T>
@@ -77,6 +66,7 @@ namespace cute {
             std::atomic<std::size_t> test_cases;
             std::atomic<std::size_t> test_cases_failed;
             std::atomic<std::size_t> checks_performed;
+            std::size_t              duration_ms; // milliseconds
 
             inline context_impl() : test_cases(0), test_cases_failed(0), checks_performed(0), prev_ctx(g_current) { g_current = this; }
             inline ~context_impl() { assert(g_current == this); g_current = prev_ctx; }
@@ -113,64 +103,89 @@ namespace cute {
     typedef detail::context_impl<void> context;
 
     struct test {
-        location const loc;
+        std::string const file;
+        int const line;
         std::string const name;
         std::set<std::string> const tags;
         std::function<void()> const test_case;
 
-        inline test(location loc_, std::string name_, std::function<void()> test_case_) : loc(std::move(loc_)), name(std::move(name_)), test_case(std::move(test_case_)) { }
-        inline test(location loc_, std::string name_, std::set<std::string> tags_, std::function<void()> test_case_) : loc(std::move(loc_)), name(std::move(name_)), tags(std::move(tags_)), test_case(std::move(test_case_)) { }
+        inline test(std::string file_, int line_, std::string name_, std::function<void()> test_case_) : file(std::move(file_)), line(std::move(line_)), name(std::move(name_)), test_case(std::move(test_case_)) { }
+        inline test(std::string file_, int line_, std::string name_, std::set<std::string> tags_, std::function<void()> test_case_) : file(std::move(file_)), line(std::move(line_)), name(std::move(name_)), tags(std::move(tags_)), test_case(std::move(test_case_)) { }
     };
     
-    inline void report_command_line(std::ostream& os, detail::exception const& ex, std::string const& test) {
+    inline std::ostream& command_line_reporter(std::ostream& os, std::string const& test, bool pass, std::string const& file, int line, std::string const& msg, std::string const& expr, std::size_t duration_ms) {
         static std::mutex g_mutex; std::lock_guard<std::mutex> lock(g_mutex);
 
-        os << ex.loc << ": error: " << ex.what() << ": " << test;
-        if(!ex.expr.empty()) { os << ": " << ex.expr; }
+#if defined(__GNUG__)
+        os << file << ":" << line << ": ";
+#else // defined(__GNUG__)
+        os << file << "(" << line << "): ");
+#endif // defined(__GNUG__)
+        os << (pass ? "pass" : "error") << ": ";
+        if(!msg.empty()) { os << msg << ": "; }
+        os << test;
+        if(!expr.empty()) { os << ": \'" << expr << "\'"; }
+        os << " [duration: " << duration_ms << " ms]";
         os << std::endl;
+
+        return os;
     }
-    
+
+    typedef std::function<void(std::string const& test, bool pass, std::string const& file, int line, std::string const& msg, std::string const& expr, std::size_t duration_ms)> reporter;
+
     template<std::size_t N>
     inline std::unique_ptr<cute::context> run(
         test const (&specifications)[N],
-        std::ostream& os = std::cout,
+        reporter rep,
         std::set<std::string> const& include_tags = std::set<std::string>(),
         std::set<std::string> const& exclude_tags = std::set<std::string>()
     ) {
         auto ctx = std::unique_ptr<context>(new context());
+
+        auto time_start_all = std::chrono::high_resolution_clock::now();
 
         for(auto&& test : specifications) {
             if(detail::skip_test(test.tags, include_tags, exclude_tags)) {
                 continue;
             }
 
+            auto pass = true;
+            auto file = test.file;
+            auto line = test.line;
+            auto msg  = std::string();
+            auto expr = std::string();
+            auto time_start = std::chrono::high_resolution_clock::now();
+
             try {
                 ++ctx->test_cases;
-                auto const start_count = ctx->checks_performed.load();
+                auto const count_start = ctx->checks_performed.load();
 
-                try {
-                    test.test_case();
-                } catch(std::exception const &ex) {
-                    throw cute::detail::exception("unexpected exception with message \"" + std::string(ex.what()) + "\"", "", test.loc);
-                } catch(...) {
-                    throw cute::detail::exception("unexpected exception of unknown type", "", test.loc);
-                }
+                --ctx->checks_performed; // decr by one since CUTE_EXPECT_IMPL() below will increment it again
+                CUTE_EXPECT_IMPL(((void)test.test_case(), true), "", test.file, test.line);
 
-                auto const end_count = ctx->checks_performed.load();
-                if(start_count == end_count) {
-                    throw cute::detail::exception("no check performed in test case", "", test.loc);
+                auto const count_end = ctx->checks_performed.load();
+                if(count_start == count_end) {
+                    throw cute::detail::exception("no check performed in test case", "", test.file, test.line);
                 }
             } catch(detail::exception const& ex) {
                 ++ctx->test_cases_failed;
-                report_command_line(os, ex, test.name);
+
+                pass = false;
+                file = ex.file;
+                line = ex.line;
+                msg  = ex.what();
+                expr = ex.expr;
             }
+
+            auto time_end = std::chrono::high_resolution_clock::now();
+            auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
+
+            if(rep) { rep(test.name, pass, file, line, msg, expr, duration_ms); }
         }
 
-        if(ctx->test_cases_failed > 0) {
-            os << ctx->test_cases_failed << " out of " << ctx->test_cases << " tests failed (" << ctx->checks_performed << " checks performed)." << std::endl;
-        } else {
-            os << "All " << ctx->test_cases << " tests passed (" << ctx->checks_performed << " checks performed)." << std::endl;
-        }
+        auto time_end_all = std::chrono::high_resolution_clock::now();
+        auto duration_all_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end_all - time_start_all).count();
+        ctx->duration_ms = static_cast<decltype(ctx->duration_ms)>(duration_all_ms);
 
         return ctx;
     }

@@ -5,17 +5,13 @@
 
 #include "../cute/cute.hpp"
 
-static const cute::test tests[] = {
+static cute::test const tests[] = {
     { CUTE_TEST_CASE("CUTE_EXPECT(true) should pass", { "pass" }) {
         CUTE_EXPECT(true);
     }},
 
     { CUTE_TEST_CASE("CUTE_EXPECT(false) should fail", { "fail" }) {
         CUTE_EXPECT(false);
-    }},
-
-    { CUTE_TEST_CASE("create a test case with no tags", { "pass" }) {
-        CUTE_EXPECT(true);
     }},
 
     { CUTE_TEST_CASE("CUTE_EXPECT_THROWS() should pass if an exception is thrown", { "pass" }) {
@@ -25,7 +21,7 @@ static const cute::test tests[] = {
 
     { CUTE_TEST_CASE("CUTE_EXPECT_THROWS() should fail if no exception is thrown", { "fail" }) {
         auto throw_no_exception = []() { };
-        CUTE_EXPECT_THROWS(throw_no_exception);
+        CUTE_EXPECT_THROWS(throw_no_exception());
     }},
 
     { CUTE_TEST_CASE("CUTE_EXPECT_THROWS_AS() should pass if the correct exception is thrown", { "pass" }) {
