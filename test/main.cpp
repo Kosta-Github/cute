@@ -5,19 +5,22 @@
 
 #include "cute_unittests.hpp"
 
-static void console_reporter(std::string const& test, bool pass, std::string const& file, int line, std::string const& msg, std::string const& expr, std::size_t duration_ms) {
-    cute::command_line_reporter(pass ? std::cout : std::cerr, test, pass, file, line, msg, expr, duration_ms);
-}
-
 int main(int argc, char* argv[]) {
-    auto pass_ctx = cute::run(tests, &console_reporter, { "pass" }, { "fail" });
+    auto normal_reporter = [](cute::report const& rep) {
+        cute::command_line_reporter(rep.pass ? std::cout : std::cerr, rep);
+    };
+    auto pass_ctx = cute::run(tests, normal_reporter, { "pass" });
     if(pass_ctx->test_cases_failed > 0) {
         std::cerr << pass_ctx->test_cases_failed << " out of " << pass_ctx->test_cases << " tests failed (" << pass_ctx->checks_performed << " checks performed)." << std::endl;
     } else {
         std::cout << "All " << pass_ctx->test_cases << " tests passed (" << pass_ctx->checks_performed << " checks performed)." << std::endl;
     }
 
-    auto fail_ctx = cute::run(tests, &console_reporter, { "fail" }, { "pass" });
+    auto inverse_reporter = [](cute::report const& rep) {
+        auto r = rep; r.pass = !r.pass;
+        cute::command_line_reporter(r.pass ? std::cout : std::cerr, r);
+    };
+    auto fail_ctx = cute::run(tests, inverse_reporter, { "fail" });
     if(fail_ctx->test_cases_failed > 0) {
         std::cerr << fail_ctx->test_cases_failed << " out of " << fail_ctx->test_cases << " tests failed (" << fail_ctx->checks_performed << " checks performed)." << std::endl;
     } else {

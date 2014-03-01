@@ -103,40 +103,66 @@ namespace cute {
     typedef detail::context_impl<void> context;
 
     struct test {
-        std::string const file;
-        int const line;
         std::string const name;
         std::set<std::string> const tags;
         std::function<void()> const test_case;
+        std::string const file;
+        int const line;
 
-        inline test(std::string file_, int line_, std::string name_, std::function<void()> test_case_) : file(std::move(file_)), line(std::move(line_)), name(std::move(name_)), test_case(std::move(test_case_)) { }
-        inline test(std::string file_, int line_, std::string name_, std::set<std::string> tags_, std::function<void()> test_case_) : file(std::move(file_)), line(std::move(line_)), name(std::move(name_)), tags(std::move(tags_)), test_case(std::move(test_case_)) { }
+        inline test(std::string file_, int line_, std::string name_, std::function<void()> test_case_) : name(std::move(name_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_)) { }
+        inline test(std::string file_, int line_, std::string name_, std::set<std::string> tags_, std::function<void()> test_case_) : name(std::move(name_)), tags(std::move(tags_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_)) { }
     };
     
-    inline std::ostream& command_line_reporter(std::ostream& os, std::string const& test, bool pass, std::string const& file, int line, std::string const& msg, std::string const& expr, std::size_t duration_ms) {
+    struct report {
+        std::string test;
+        bool pass;
+        std::string msg;
+        std::string expr;
+        std::string file;
+        int line;
+        std::size_t duration_ms;
+
+        inline report(
+            std::string test_ = "",
+            bool pass_ = true,
+            std::string msg_ = "",
+            std::string expr_ = "",
+            std::string file_ = "",
+            int line_ = 0,
+            std::size_t duration_ms_ = 0
+        ) :
+            test(std::move(test_)),
+            pass(std::move(pass_)),
+            msg(std::move(msg_)),
+            expr(std::move(expr)),
+            file(std::move(file_)),
+            line(std::move(line_)),
+            duration_ms(std::move(duration_ms_))
+        { }
+    };
+
+    inline std::ostream& command_line_reporter(std::ostream& os, report const& rep) {
         static std::mutex g_mutex; std::lock_guard<std::mutex> lock(g_mutex);
 
 #if defined(__GNUG__)
-        os << file << ":" << line << ": ";
+        os << rep.file << ":" << rep.line << ": ";
 #else // defined(__GNUG__)
-        os << file << "(" << line << "): ");
+        os << rep.file << "(" << rep.line << "): ");
 #endif // defined(__GNUG__)
-        os << (pass ? "pass" : "error") << ": ";
-        if(!msg.empty()) { os << msg << ": "; }
-        os << test;
-        if(!expr.empty()) { os << ": \'" << expr << "\'"; }
-        os << " [duration: " << duration_ms << " ms]";
+        os << (rep.pass ? "pass" : "error") << ": ";
+        if(!rep.msg.empty()) { os << rep.msg << ": "; }
+        os << rep.test;
+        if(!rep.expr.empty()) { os << ": \'" << rep.expr << "\'"; }
+        os << " [duration: " << rep.duration_ms << " ms]";
         os << std::endl;
 
         return os;
     }
 
-    typedef std::function<void(std::string const& test, bool pass, std::string const& file, int line, std::string const& msg, std::string const& expr, std::size_t duration_ms)> reporter;
-
     template<std::size_t N>
     inline std::unique_ptr<cute::context> run(
         test const (&specifications)[N],
-        reporter rep,
+        std::function<void(report const& rep)> reporter = nullptr,
         std::set<std::string> const& include_tags = std::set<std::string>(),
         std::set<std::string> const& exclude_tags = std::set<std::string>()
     ) {
@@ -149,11 +175,7 @@ namespace cute {
                 continue;
             }
 
-            auto pass = true;
-            auto file = test.file;
-            auto line = test.line;
-            auto msg  = std::string();
-            auto expr = std::string();
+            auto rep = report(test.name, true, "", "", test.file, test.line, 0);
             auto time_start = std::chrono::high_resolution_clock::now();
 
             try {
@@ -170,17 +192,18 @@ namespace cute {
             } catch(detail::exception const& ex) {
                 ++ctx->test_cases_failed;
 
-                pass = false;
-                file = ex.file;
-                line = ex.line;
-                msg  = ex.what();
-                expr = ex.expr;
+                rep.pass = false;
+                rep.file = ex.file;
+                rep.line = ex.line;
+                rep.msg  = ex.what();
+                rep.expr = ex.expr;
             }
 
             auto time_end = std::chrono::high_resolution_clock::now();
             auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
+            rep.duration_ms = static_cast<decltype(rep.duration_ms)>(duration_ms);
 
-            if(rep) { rep(test.name, pass, file, line, msg, expr, duration_ms); }
+            if(reporter) { reporter(rep); }
         }
 
         auto time_end_all = std::chrono::high_resolution_clock::now();
