@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <stdexcept>
