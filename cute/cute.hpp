@@ -20,14 +20,14 @@
     try { \
         ++cute::context::current().checks_performed; \
         if(!(expr)) { \
-            throw cute::detail::exception(#expr, "failed: test case", CUTE_LOCATION); \
+            throw cute::detail::exception("check failed", #expr, CUTE_LOCATION); \
         } \
     } catch(cute::detail::exception const&) { \
         throw; \
     } catch(std::exception const &ex) { \
-        throw cute::detail::exception(#expr, "failed: got unexpected exception with message \"" + std::string(ex.what()) + "\"", CUTE_LOCATION); \
+        throw cute::detail::exception("unexpected exception with message \"" + std::string(ex.what()) + "\"", #expr, CUTE_LOCATION); \
     } catch(...) { \
-        throw cute::detail::exception(#expr, "failed: got unexpected exception of unknown type", CUTE_LOCATION); \
+        throw cute::detail::exception("unexpected exception of unknown type", #expr, CUTE_LOCATION); \
     }
 
 #define CUTE_EXPECT_THROWS_AS(expr, excpt) \
@@ -39,7 +39,7 @@
             break; \
         } catch(...) { \
         } \
-        throw cute::detail::exception(#expr, "failed: didn't get exception of type \"" #excpt "\"", CUTE_LOCATION); \
+        throw cute::detail::exception("didn't get expected exception of type \"" #excpt "\"", #expr, CUTE_LOCATION); \
     }
 
 #define CUTE_EXPECT_THROWS(expr) CUTE_EXPECT_THROWS_AS(expr, std::exception)
@@ -49,8 +49,8 @@
 namespace cute {
 
     struct location {
-        const std::string file;
-        const int line;
+        std::string const file;
+        int const line;
 
         inline location(std::string file_, int line_) : file(std::move(file_)), line(std::move(line_)) { }
     };
@@ -66,10 +66,10 @@ namespace cute {
     namespace detail {
 
         struct exception : std::runtime_error {
-            const std::string kind;
-            const location loc;
+            std::string const expr;
+            location const loc;
 
-            inline exception(std::string expr_, std::string kind_, location loc_) : std::runtime_error(std::move(expr_)), kind(std::move(kind_)), loc(std::move(loc_)) { }
+            inline exception(std::string msg_, std::string expr_, location loc_) : std::runtime_error(std::move(msg_)), expr(std::move(expr_)), loc(std::move(loc_)) { }
         };
 
         template<typename T>
@@ -125,7 +125,9 @@ namespace cute {
     inline void report_command_line(std::ostream& os, detail::exception const& ex, std::string const& test) {
         static std::mutex g_mutex; std::lock_guard<std::mutex> lock(g_mutex);
 
-        os << ex.loc << ": " << ex.kind << ": " << test << ": " << ex.what() << std::endl;
+        os << ex.loc << ": error: " << ex.what() << ": " << test;
+        if(!ex.expr.empty()) { os << ": " << ex.expr; }
+        os << std::endl;
     }
     
     template<std::size_t N>
@@ -145,14 +147,18 @@ namespace cute {
             try {
                 ++ctx->test_cases;
                 auto const start_count = ctx->checks_performed.load();
-                --ctx->checks_performed; // since CUTE_EXPECT_NO_THROWS() below increases the counter as well
-                CUTE_EXPECT_NO_THROW(test.test_case());
+
+                try {
+                    test.test_case();
+                } catch(std::exception const &ex) {
+                    throw cute::detail::exception("unexpected exception with message \"" + std::string(ex.what()) + "\"", "", test.loc);
+                } catch(...) {
+                    throw cute::detail::exception("unexpected exception of unknown type", "", test.loc);
+                }
+
                 auto const end_count = ctx->checks_performed.load();
-
-                std::cout << start_count << " / " << end_count << std::endl;
-
                 if(start_count == end_count) {
-                    throw cute::detail::exception("", "failed: no check performed in test case", test.loc);
+                    throw cute::detail::exception("no check performed in test case", "", test.loc);
                 }
             } catch(detail::exception const& ex) {
                 ++ctx->test_cases_failed;
