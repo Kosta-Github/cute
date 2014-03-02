@@ -64,11 +64,13 @@ namespace cute {
         template<typename T>
         struct context_impl {
             std::atomic<std::size_t> test_cases;
+            std::atomic<std::size_t> test_cases_passed;
             std::atomic<std::size_t> test_cases_failed;
+            std::atomic<std::size_t> test_cases_skipped;
             std::atomic<std::size_t> checks_performed;
             std::size_t              duration_ms; // milliseconds
 
-            inline context_impl() : test_cases(0), test_cases_failed(0), checks_performed(0), prev_ctx(g_current) { g_current = this; }
+            inline context_impl() : test_cases(0), test_cases_passed(0), test_cases_failed(0), test_cases_skipped(0), checks_performed(0), duration_ms(0), prev_ctx(g_current) { g_current = this; }
             inline ~context_impl() { assert(g_current == this); g_current = prev_ctx; }
 
             static inline context_impl& current() { assert(g_current); return *g_current; }
@@ -171,7 +173,10 @@ namespace cute {
         auto time_start_all = std::chrono::high_resolution_clock::now();
 
         for(auto&& test : specifications) {
+            ++ctx->test_cases;
+
             if(detail::skip_test(test.tags, include_tags, exclude_tags)) {
+                ++ctx->test_cases_skipped;
                 continue;
             }
 
@@ -179,7 +184,6 @@ namespace cute {
             auto time_start = std::chrono::high_resolution_clock::now();
 
             try {
-                ++ctx->test_cases;
                 auto const count_start = ctx->checks_performed.load();
 
                 --ctx->checks_performed; // decr by one since CUTE_EXPECT_IMPL() below will increment it again
@@ -189,14 +193,16 @@ namespace cute {
                 if(count_start == count_end) {
                     throw cute::detail::exception("no check performed in test case", "", test.file, test.line);
                 }
-            } catch(detail::exception const& ex) {
-                ++ctx->test_cases_failed;
 
+                ++ctx->test_cases_passed;
+            } catch(detail::exception const& ex) {
                 rep.pass = false;
                 rep.file = ex.file;
                 rep.line = ex.line;
                 rep.msg  = ex.what();
                 rep.expr = ex.expr;
+
+                ++ctx->test_cases_failed;
             }
 
             auto time_end = std::chrono::high_resolution_clock::now();
