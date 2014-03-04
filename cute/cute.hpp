@@ -26,7 +26,9 @@
     } catch(cute::detail::exception const&) { \
         throw; \
     } catch(std::exception const &ex) { \
-        throw cute::detail::exception("got an unexpected exception with message \"" + std::string(ex.what()) + "\"", EXPR_TEXT, FILE, LINE); \
+        throw cute::detail::exception( \
+            "got an unexpected exception with message \"" + std::string(ex.what()) + "\"", EXPR_TEXT, FILE, LINE \
+        ); \
     } catch(...) { \
         throw cute::detail::exception("got an unexpected exception of unknown type", EXPR_TEXT, FILE, LINE); \
     }
@@ -43,7 +45,9 @@
             break; \
         } catch(...) { \
         } \
-        throw cute::detail::exception("didn't get an expected exception of type \"" #excpt "\"", #expr, __FILE__, __LINE__); \
+        throw cute::detail::exception( \
+            "didn't get an expected exception of type \"" #excpt "\"", #expr, __FILE__, __LINE__ \
+        ); \
     }
 
 #define CUTE_EXPECT_THROWS(expr) CUTE_EXPECT_THROWS_AS(expr, std::exception)
@@ -58,7 +62,9 @@ namespace cute {
             std::string const file;
             int const line;
 
-            inline exception(std::string msg_, std::string expr_, std::string file_, int line_) : std::runtime_error(std::move(msg_)), expr(std::move(expr_)), file(std::move(file_)), line(std::move(line_)) { }
+            inline exception(std::string msg_, std::string expr_, std::string file_, int line_) :
+                std::runtime_error(std::move(msg_)), expr(std::move(expr_)), file(std::move(file_)), line(std::move(line_))
+            { }
         };
 
         template<typename T>
@@ -70,7 +76,12 @@ namespace cute {
             std::atomic<std::size_t> checks_performed;
             std::size_t              duration_ms; // milliseconds
 
-            inline context_impl() : test_cases(0), test_cases_passed(0), test_cases_failed(0), test_cases_skipped(0), checks_performed(0), duration_ms(0), prev_ctx(g_current) { g_current = this; }
+            inline context_impl() :
+                test_cases(0), test_cases_passed(0), test_cases_failed(0), test_cases_skipped(0),
+                checks_performed(0), duration_ms(0), prev_ctx(g_current)
+            {
+                g_current = this;
+            }
             inline ~context_impl() { assert(g_current == this); g_current = prev_ctx; }
 
             static inline context_impl& current() { assert(g_current); return *g_current; }
@@ -100,6 +111,16 @@ namespace cute {
             return false;
         }
 
+        inline auto time_now() -> decltype(std::chrono::high_resolution_clock::now()) {
+            return std::chrono::high_resolution_clock::now();
+        }
+
+        template<typename T>
+        inline std::int64_t time_diff_ms(T&& start, T&& end) {
+            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            return static_cast<std::int64_t>(diff);
+        }
+
     } // namespace detail
 
     typedef detail::context_impl<void> context;
@@ -111,8 +132,12 @@ namespace cute {
         std::string const file;
         int const line;
 
-        inline test(std::string file_, int line_, std::string name_, std::function<void()> test_case_) : name(std::move(name_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_)) { }
-        inline test(std::string file_, int line_, std::string name_, std::set<std::string> tags_, std::function<void()> test_case_) : name(std::move(name_)), tags(std::move(tags_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_)) { }
+        inline test(std::string file_, int line_, std::string name_, std::function<void()> test_case_) :
+            name(std::move(name_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
+        { }
+        inline test(std::string file_, int line_, std::string name_, std::set<std::string> tags_, std::function<void()> test_case_) :
+            name(std::move(name_)), tags(std::move(tags_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
+        { }
     };
     
     struct report {
@@ -122,24 +147,13 @@ namespace cute {
         std::string expr;
         std::string file;
         int line;
-        std::size_t duration_ms;
+        std::int64_t duration_ms;
 
-        inline report(
-            std::string test_ = "",
-            bool pass_ = true,
-            std::string msg_ = "",
-            std::string expr_ = "",
-            std::string file_ = "",
-            int line_ = 0,
-            std::size_t duration_ms_ = 0
+        inline report(std::string test_ = "", bool pass_ = true, std::string msg_ = "", std::string expr_ = "",
+            std::string file_ = "", int line_ = 0, std::size_t duration_ms_ = 0
         ) :
-            test(std::move(test_)),
-            pass(std::move(pass_)),
-            msg(std::move(msg_)),
-            expr(std::move(expr)),
-            file(std::move(file_)),
-            line(std::move(line_)),
-            duration_ms(std::move(duration_ms_))
+            test(std::move(test_)), pass(std::move(pass_)), msg(std::move(msg_)), expr(std::move(expr)),
+            file(std::move(file_)), line(std::move(line_)), duration_ms(std::move(duration_ms_))
         { }
     };
 
@@ -170,7 +184,7 @@ namespace cute {
     ) {
         auto ctx = std::unique_ptr<context>(new context());
 
-        auto time_start_all = std::chrono::high_resolution_clock::now();
+        auto const time_start_all = detail::time_now();
 
         for(auto&& test : specifications) {
             ++ctx->test_cases;
@@ -181,7 +195,7 @@ namespace cute {
             }
 
             auto rep = report(test.name, true, "", "", test.file, test.line, 0);
-            auto time_start = std::chrono::high_resolution_clock::now();
+            auto const time_start = detail::time_now();
 
             try {
                 auto const count_start = ctx->checks_performed.load();
@@ -205,16 +219,14 @@ namespace cute {
                 ++ctx->test_cases_failed;
             }
 
-            auto time_end = std::chrono::high_resolution_clock::now();
-            auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
-            rep.duration_ms = static_cast<decltype(rep.duration_ms)>(duration_ms);
+            auto const time_end = detail::time_now();
+            rep.duration_ms = detail::time_diff_ms(time_start, time_end);
 
             if(reporter) { reporter(rep); }
         }
 
-        auto time_end_all = std::chrono::high_resolution_clock::now();
-        auto duration_all_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end_all - time_start_all).count();
-        ctx->duration_ms = static_cast<decltype(ctx->duration_ms)>(duration_all_ms);
+        auto const time_end_all = detail::time_now();
+        ctx->duration_ms = detail::time_diff_ms(time_start_all, time_end_all);
 
         return ctx;
     }
