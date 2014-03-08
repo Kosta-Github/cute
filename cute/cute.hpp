@@ -9,6 +9,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -19,7 +20,7 @@
 
 #define CUTE_EXPECT_IMPL(EXPR_EVAL, EXPR_TEXT, FILE, LINE) \
     try { \
-        ++cute::context::current().checks_performed; \
+        ++cute::test_suite_result::current().checks_performed; \
         if(!(EXPR_EVAL)) { \
             throw cute::detail::exception("check failed", EXPR_TEXT, FILE, LINE); \
         } \
@@ -39,7 +40,7 @@
 #define CUTE_EXPECT_THROWS_AS(expr, excpt) \
     for(;;) { \
         try { \
-            ++cute::context::current().checks_performed; \
+            ++cute::test_suite_result::current().checks_performed; \
             (void)(expr); \
         } catch(excpt const&) { \
             break; \
@@ -68,7 +69,7 @@ namespace cute {
         };
 
         template<typename T>
-        struct context_impl {
+        struct test_suite_result {
             std::atomic<std::size_t> test_cases;
             std::atomic<std::size_t> test_cases_passed;
             std::atomic<std::size_t> test_cases_failed;
@@ -76,22 +77,45 @@ namespace cute {
             std::atomic<std::size_t> checks_performed;
             std::size_t              duration_ms; // milliseconds
 
-            inline context_impl() :
+            inline test_suite_result() :
                 test_cases(0), test_cases_passed(0), test_cases_failed(0), test_cases_skipped(0),
                 checks_performed(0), duration_ms(0), prev_ctx(g_current)
             {
                 g_current = this;
             }
-            inline ~context_impl() { assert(g_current == this); g_current = prev_ctx; }
+            inline ~test_suite_result() { assert(g_current == this); g_current = prev_ctx; }
 
-            static inline context_impl& current() { assert(g_current); return *g_current; }
+            static inline test_suite_result& current() { assert(g_current); return *g_current; }
 
         private:
-            static context_impl* g_current;
-            context_impl* const prev_ctx;
+            static test_suite_result* g_current;
+            test_suite_result* const prev_ctx;
         };
         template<typename T>
-        context_impl<T>* context_impl<T>::g_current = nullptr;
+        test_suite_result<T>* test_suite_result<T>::g_current = nullptr;
+
+        inline auto trim(std::string const& s) -> std::string {
+            auto start = 0;
+            while(s[start] == ' ') { ++start; }
+            if(start >= s.size()) { return ""; }
+            auto end = s.size() - 1;
+            while(s[end] == ' ') { --end; }
+            return s.substr(start, end - start + 1);
+        }
+
+        inline auto parse_tags(std::string const& tags) -> std::set<std::string> {
+            std::set<std::string> res;
+
+            auto start = std::string::size_type(0);
+            while(start < tags.size()) {
+                auto end = tags.find(',', start);
+                auto tag = trim(tags.substr(start, end - start));
+                if(!tag.empty()) { res.insert(std::move(tag)); }
+                start = ((end < tags.npos) ? end + 1 : tags.npos);
+            }
+
+            return res;
+        }
 
         inline bool skip_test(
             std::set<std::string> const& test_tags,
@@ -123,7 +147,7 @@ namespace cute {
 
     } // namespace detail
 
-    typedef detail::context_impl<void> context;
+    typedef detail::test_suite_result<void> test_suite_result;
 
     struct test {
         std::string const name;
@@ -135,12 +159,12 @@ namespace cute {
         inline test(std::string file_, int line_, std::string name_, std::function<void()> test_case_) :
             name(std::move(name_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
         { }
-        inline test(std::string file_, int line_, std::string name_, std::set<std::string> tags_, std::function<void()> test_case_) :
-            name(std::move(name_)), tags(std::move(tags_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
+        inline test(std::string file_, int line_, std::string name_, std::string const& tags_, std::function<void()> test_case_) :
+            name(std::move(name_)), tags(detail::parse_tags(tags_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
         { }
     };
     
-    struct report {
+    struct test_result {
         std::string test;
         bool pass;
         std::string msg;
@@ -149,7 +173,7 @@ namespace cute {
         int line;
         std::int64_t duration_ms;
 
-        inline report(std::string test_ = "", bool pass_ = true, std::string msg_ = "", std::string expr_ = "",
+        inline test_result(std::string test_ = "", bool pass_ = true, std::string msg_ = "", std::string expr_ = "",
             std::string file_ = "", int line_ = 0, std::size_t duration_ms_ = 0
         ) :
             test(std::move(test_)), pass(std::move(pass_)), msg(std::move(msg_)), expr(std::move(expr)),
@@ -157,44 +181,47 @@ namespace cute {
         { }
     };
 
-    inline std::ostream& command_line_reporter(std::ostream& os, report const& rep) {
+    inline std::ostream& command_line_reporter(std::ostream& os, test_result const& res) {
         static std::mutex g_mutex; std::lock_guard<std::mutex> lock(g_mutex);
 
 #if defined(__GNUG__)
-        os << rep.file << ":" << rep.line << ": ";
+        os << res.file << ":" << res.line << ": ";
 #else // defined(__GNUG__)
-        os << rep.file << "(" << rep.line << "): ");
+        os << res.file << "(" << res.line << "): ";
 #endif // defined(__GNUG__)
-        os << (rep.pass ? "pass" : "error") << ": ";
-        if(!rep.msg.empty()) { os << rep.msg << ": "; }
-        os << rep.test;
-        if(!rep.expr.empty()) { os << ": \'" << rep.expr << "\'"; }
-        os << " [duration: " << rep.duration_ms << " ms]";
+        os << (res.pass ? "pass" : "error") << ": ";
+        if(!res.msg.empty()) { os << res.msg << ": "; }
+        os << res.test;
+        if(!res.expr.empty()) { os << ": \'" << res.expr << "\'"; }
+        os << " [duration: " << res.duration_ms << " ms]";
         os << std::endl;
 
         return os;
     }
 
     template<std::size_t N>
-    inline std::unique_ptr<cute::context> run(
+    inline std::unique_ptr<test_suite_result> run(
         test const (&specifications)[N],
-        std::function<void(report const& rep)> reporter = nullptr,
-        std::set<std::string> const& include_tags = std::set<std::string>(),
-        std::set<std::string> const& exclude_tags = std::set<std::string>()
+        std::function<void(test_result const& rep)> reporter = nullptr,
+        std::string const& include_tags = "",
+        std::string const& exclude_tags = ""
     ) {
-        auto ctx = std::unique_ptr<context>(new context());
-
         auto const time_start_all = detail::time_now();
+
+        auto ctx = std::unique_ptr<test_suite_result>(new test_suite_result());
+
+        auto const incl_tags = detail::parse_tags(include_tags);
+        auto const excl_tags = detail::parse_tags(exclude_tags);
 
         for(auto&& test : specifications) {
             ++ctx->test_cases;
 
-            if(detail::skip_test(test.tags, include_tags, exclude_tags)) {
+            if(detail::skip_test(test.tags, incl_tags, excl_tags)) {
                 ++ctx->test_cases_skipped;
                 continue;
             }
 
-            auto rep = report(test.name, true, "", "", test.file, test.line, 0);
+            auto rep = test_result(test.name, true, "", "", test.file, test.line, 0);
             auto const time_start = detail::time_now();
 
             try {
