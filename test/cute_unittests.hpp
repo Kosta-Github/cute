@@ -60,3 +60,19 @@ CUTE_TEST("a test case should fail if an uncaught exception is thrown", "fail") 
 CUTE_TEST("a test case should fail if no check is performed in it", "fail") {
     // nothing to do here
 }
+
+
+
+CUTE_TEST("test decomposer", "fail") {
+    auto str1 = "hello";
+    auto str2 = std::string("kosta");
+    auto b1 = false;
+    auto b2 = true;
+    auto i1 = int(1510);
+    auto res = (cute::detail::expression_decomposer()->* str2.size() != i1);
+
+    std::cout << res << std::endl;
+
+    CUTE_EXPECT(false);
+    // nothing to do here
+}

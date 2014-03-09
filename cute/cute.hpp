@@ -15,6 +15,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -201,6 +202,72 @@ namespace cute {
                 file(std::move(file_)), line(std::move(line_)), duration_ms(std::move(duration_ms_))
             { }
         };
+
+
+
+
+
+        inline std::string to_string(std::nullptr_t const&)     { return "nullptr"; }
+        inline std::string to_string(std::string    const& str) { return ('\"' + str + '\"'); }
+        inline std::string to_string(char const*    const& str) { return (str ? ('\"' + std::string(str) + '\"') : "nullptr"); }
+        inline std::string to_string(char           const& c)   { return ('\'' + std::string(1, c) + '\''); }
+        inline std::string to_string(bool           const& b)   { return (b ? "true" : "false"); }
+
+        template<typename T>
+        inline auto to_string(T const& value) -> std::string {
+            std::ostringstream os; os << value; return os.str();
+        }
+
+        template<typename L>
+        inline std::string to_string(std::string const& op, L const& lhs) {
+            std::ostringstream os; os << op << ' ' << to_string(lhs); return os.str();
+        }
+            
+        template<typename L, typename R>
+        inline std::string to_string(L const& lhs, std::string const& op, R const& rhs) {
+            std::ostringstream os; os << to_string(lhs) << ' ' << op << ' ' << to_string(rhs); return os.str();
+        }
+
+        template<typename T>
+        struct expression;
+
+        struct expression_decomposer {
+            template<typename T>
+            inline expression<T const&> operator->*(T const& op) {
+                return expression<T const&>(op);
+            }
+        };
+
+        template<typename T>
+        struct expression {
+            const T obj;
+
+            inline expression(T obj_) : obj(std::move(obj_)) { }
+
+            inline operator std::string() const { return to_string(obj); }
+
+            template<typename R> inline std::string operator! ()             const { return to_string("!", obj); }
+
+            template<typename R> inline std::string operator==(R const& rhs) const { return to_string(obj, "==", rhs); }
+            template<typename R> inline std::string operator!=(R const& rhs) const { return to_string(obj, "!=", rhs); }
+            template<typename R> inline std::string operator< (R const& rhs) const { return to_string(obj, "<" , rhs); }
+            template<typename R> inline std::string operator<=(R const& rhs) const { return to_string(obj, "<=", rhs); }
+            template<typename R> inline std::string operator> (R const& rhs) const { return to_string(obj, ">" , rhs); }
+            template<typename R> inline std::string operator>=(R const& rhs) const { return to_string(obj, ">=", rhs); }
+
+            template<typename R> inline std::string operator&&(R const& rhs) const { return to_string(obj, "&&", rhs); }
+            template<typename R> inline std::string operator||(R const& rhs) const { return to_string(obj, "||", rhs); }
+        };
+            
+
+
+
+
+
+
+
+
+
         
     } // namespace detail
 
