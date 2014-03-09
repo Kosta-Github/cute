@@ -5,7 +5,12 @@
 
 #include "cute_unittests.hpp"
 
+CUTE_INIT();
+
 int main(int argc, char* argv[]) {
+    auto&& tests = cute::detail::test_registry::instance().tests;
+    std::cout << "tests registered: " << tests.size() << std::endl;
+
     auto normal_reporter = [](cute::test_result const& res) {
         cute::command_line_reporter(res.pass ? std::cout : std::cerr, res);
     };

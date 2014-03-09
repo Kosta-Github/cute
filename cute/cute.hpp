@@ -17,8 +17,9 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
-#define CUTE_EXPECT_IMPL(EXPR_EVAL, EXPR_TEXT, FILE, LINE) \
+#define CUTE_DETAIL_EXPECT(EXPR_EVAL, EXPR_TEXT, FILE, LINE) \
     try { \
         ++cute::test_suite_result::current().checks_performed; \
         if(!(EXPR_EVAL)) { \
@@ -34,8 +35,8 @@
         throw cute::detail::exception("got an unexpected exception of unknown type", EXPR_TEXT, FILE, LINE); \
     }
 
-#define CUTE_EXPECT(EXPR) CUTE_EXPECT_IMPL(EXPR, #EXPR, __FILE__, __LINE__)
-#define CUTE_EXPECT_NO_THROW(EXPR) CUTE_EXPECT_IMPL(((void)(EXPR), true), #EXPR, __FILE__, __LINE__)
+#define CUTE_EXPECT(EXPR) CUTE_DETAIL_EXPECT(EXPR, #EXPR, __FILE__, __LINE__)
+#define CUTE_EXPECT_NO_THROW(EXPR) CUTE_DETAIL_EXPECT(((void)(EXPR), true), #EXPR, __FILE__, __LINE__)
 
 #define CUTE_EXPECT_THROWS_AS(expr, excpt) \
     for(;;) { \
@@ -54,45 +55,26 @@
 #define CUTE_EXPECT_THROWS(expr) CUTE_EXPECT_THROWS_AS(expr, std::exception)
 #define CUTE_TEST_CASE(...) __FILE__, __LINE__, __VA_ARGS__, []()
 
+#define CUTE_INIT() \
+    cute::detail::test_registry& cute::detail::test_registry::instance() { static test_registry reg; return reg; } \
+    cute::detail::test_suite_result* cute::detail::test_suite_result::g_current = nullptr;
+
+#define CUTE_DETAIL_UNIQUE_NAME_LINE_2(NAME, LINE) NAME##LINE
+#define CUTE_DETAIL_UNIQUE_NAME_LINE(NAME, LINE) CUTE_DETAIL_UNIQUE_NAME_LINE_2(NAME, LINE)
+#define CUTE_DETAIL_UNIQUE_NAME(NAME) CUTE_DETAIL_UNIQUE_NAME_LINE(NAME, __LINE__)
+
+#define CUTE_TEST(...) \
+    static void CUTE_DETAIL_UNIQUE_NAME(cute_detail_test)(); \
+    static bool CUTE_DETAIL_UNIQUE_NAME(cute_detail_test_reg) = \
+        cute::detail::test_registry::instance().add(cute::detail::test( \
+            __FILE__, __LINE__, __VA_ARGS__, CUTE_DETAIL_UNIQUE_NAME(cute_detail_test) \
+        ) \
+    ); \
+    static void CUTE_DETAIL_UNIQUE_NAME(cute_detail_test)()
+
 namespace cute {
 
     namespace detail {
-
-        struct exception : std::runtime_error {
-            std::string const expr;
-            std::string const file;
-            int const line;
-
-            inline exception(std::string msg_, std::string expr_, std::string file_, int line_) :
-                std::runtime_error(std::move(msg_)), expr(std::move(expr_)), file(std::move(file_)), line(std::move(line_))
-            { }
-        };
-
-        template<typename T>
-        struct test_suite_result {
-            std::atomic<std::size_t> test_cases;
-            std::atomic<std::size_t> test_cases_passed;
-            std::atomic<std::size_t> test_cases_failed;
-            std::atomic<std::size_t> test_cases_skipped;
-            std::atomic<std::size_t> checks_performed;
-            std::size_t              duration_ms; // milliseconds
-
-            inline test_suite_result() :
-                test_cases(0), test_cases_passed(0), test_cases_failed(0), test_cases_skipped(0),
-                checks_performed(0), duration_ms(0), prev_ctx(g_current)
-            {
-                g_current = this;
-            }
-            inline ~test_suite_result() { assert(g_current == this); g_current = prev_ctx; }
-
-            static inline test_suite_result& current() { assert(g_current); return *g_current; }
-
-        private:
-            static test_suite_result* g_current;
-            test_suite_result* const prev_ctx;
-        };
-        template<typename T>
-        test_suite_result<T>* test_suite_result<T>::g_current = nullptr;
 
         inline auto trim(std::string const& s) -> std::string {
             auto start = 0;
@@ -113,7 +95,7 @@ namespace cute {
                 if(!tag.empty()) { res.insert(std::move(tag)); }
                 start = ((end < tags.npos) ? end + 1 : tags.npos);
             }
-
+            
             return res;
         }
 
@@ -131,10 +113,10 @@ namespace cute {
             for(auto&& exclude : exclude_tags) {
                 if(test_tags.find(exclude) != test_tags.end()) { return true; }
             }
-
+            
             return false;
         }
-
+        
         inline auto time_now() -> decltype(std::chrono::high_resolution_clock::now()) {
             return std::chrono::high_resolution_clock::now();
         }
@@ -144,42 +126,87 @@ namespace cute {
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
             return static_cast<std::int64_t>(diff);
         }
+        
+        struct test {
+            std::string const name;
+            std::set<std::string> const tags;
+            std::function<void()> const test_case;
+            std::string const file;
+            int const line;
 
+            inline test(std::string file_, int line_, std::string name_, std::function<void()> test_case_) :
+                name(std::move(name_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
+            { }
+            inline test(std::string file_, int line_, std::string name_, std::string const& tags_, std::function<void()> test_case_) :
+                name(std::move(name_)), tags(detail::parse_tags(tags_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
+            { }
+        };
+
+        struct exception : std::runtime_error {
+            std::string const expr;
+            std::string const file;
+            int const line;
+
+            inline exception(std::string msg_, std::string expr_, std::string file_, int line_) :
+                std::runtime_error(std::move(msg_)), expr(std::move(expr_)), file(std::move(file_)), line(std::move(line_))
+            { }
+        };
+
+        struct test_suite_result {
+            std::atomic<std::size_t> test_cases;
+            std::atomic<std::size_t> test_cases_passed;
+            std::atomic<std::size_t> test_cases_failed;
+            std::atomic<std::size_t> test_cases_skipped;
+            std::atomic<std::size_t> checks_performed;
+            std::size_t              duration_ms; // milliseconds
+
+            inline test_suite_result() :
+                test_cases(0), test_cases_passed(0), test_cases_failed(0), test_cases_skipped(0),
+                checks_performed(0), duration_ms(0), prev_res(g_current)
+            {
+                g_current = this;
+            }
+            inline ~test_suite_result() { assert(g_current == this); g_current = prev_res; }
+
+            static inline test_suite_result& current() { assert(g_current); return *g_current; }
+
+        private:
+            static test_suite_result* g_current;
+            test_suite_result* const prev_res;
+        };
+
+        struct test_registry {
+            std::vector<test> tests;
+            inline bool add(test t) {
+                tests.emplace_back(std::move(t)); return true;
+            }
+
+            static test_registry& instance();
+        };
+
+        struct test_result {
+            std::string test;
+            bool pass;
+            std::string msg;
+            std::string expr;
+            std::string file;
+            int line;
+            std::int64_t duration_ms;
+
+            inline test_result(
+                std::string test_ = "", bool pass_ = true, std::string msg_ = "", std::string expr_ = "",
+                std::string file_ = "", int line_ = 0, std::size_t duration_ms_ = 0
+            ) :
+                test(std::move(test_)), pass(std::move(pass_)), msg(std::move(msg_)), expr(std::move(expr)),
+                file(std::move(file_)), line(std::move(line_)), duration_ms(std::move(duration_ms_))
+            { }
+        };
+        
     } // namespace detail
 
-    typedef detail::test_suite_result<void> test_suite_result;
-
-    struct test {
-        std::string const name;
-        std::set<std::string> const tags;
-        std::function<void()> const test_case;
-        std::string const file;
-        int const line;
-
-        inline test(std::string file_, int line_, std::string name_, std::function<void()> test_case_) :
-            name(std::move(name_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
-        { }
-        inline test(std::string file_, int line_, std::string name_, std::string const& tags_, std::function<void()> test_case_) :
-            name(std::move(name_)), tags(detail::parse_tags(tags_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
-        { }
-    };
-    
-    struct test_result {
-        std::string test;
-        bool pass;
-        std::string msg;
-        std::string expr;
-        std::string file;
-        int line;
-        std::int64_t duration_ms;
-
-        inline test_result(std::string test_ = "", bool pass_ = true, std::string msg_ = "", std::string expr_ = "",
-            std::string file_ = "", int line_ = 0, std::size_t duration_ms_ = 0
-        ) :
-            test(std::move(test_)), pass(std::move(pass_)), msg(std::move(msg_)), expr(std::move(expr)),
-            file(std::move(file_)), line(std::move(line_)), duration_ms(std::move(duration_ms_))
-        { }
-    };
+    using detail::test;
+    using detail::test_result;
+    using detail::test_suite_result;
 
     inline std::ostream& command_line_reporter(std::ostream& os, test_result const& res) {
         static std::mutex g_mutex; std::lock_guard<std::mutex> lock(g_mutex);
@@ -199,9 +226,8 @@ namespace cute {
         return os;
     }
 
-    template<std::size_t N>
     inline std::unique_ptr<test_suite_result> run(
-        test const (&specifications)[N],
+        std::vector<test> const& tests,
         std::function<void(test_result const& rep)> reporter = nullptr,
         std::string const& include_tags = "",
         std::string const& exclude_tags = ""
@@ -213,7 +239,7 @@ namespace cute {
         auto const incl_tags = detail::parse_tags(include_tags);
         auto const excl_tags = detail::parse_tags(exclude_tags);
 
-        for(auto&& test : specifications) {
+        for(auto&& test : tests) {
             ++ctx->test_cases;
 
             if(detail::skip_test(test.tags, incl_tags, excl_tags)) {
@@ -228,7 +254,7 @@ namespace cute {
                 auto const count_start = ctx->checks_performed.load();
 
                 --ctx->checks_performed; // decr by one since CUTE_EXPECT_IMPL() below will increment it again
-                CUTE_EXPECT_IMPL(((void)test.test_case(), true), "", test.file, test.line);
+                CUTE_DETAIL_EXPECT(((void)test.test_case(), true), "", test.file, test.line);
 
                 auto const count_end = ctx->checks_performed.load();
                 if(count_start == count_end) {
