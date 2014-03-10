@@ -18,10 +18,7 @@ namespace cute {
         std::string const file;
         int const line;
 
-        inline test(std::string file_, int line_, std::string name_, std::function<void()> test_case_) :
-            name(std::move(name_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
-        { }
-        inline test(std::string file_, int line_, std::string name_, std::string const& tags_, std::function<void()> test_case_) :
+        inline test(std::string file_, int line_, std::function<void()> test_case_, std::string name_, std::string const& tags_ = "") :
             name(std::move(name_)), tags(detail::parse_tags(tags_)), test_case(std::move(test_case_)), file(std::move(file_)), line(std::move(line_))
         { }
     };
