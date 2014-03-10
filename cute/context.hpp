@@ -54,7 +54,7 @@ namespace cute {
 
                     auto const count_end = res->checks_performed.load();
                     if(count_start == count_end) {
-                        throw cute::detail::exception("no check performed in test case", test.file, test.line, "");
+                        throw cute::detail::exception("no check performed in test case", test.file, test.line, "", "");
                     }
 
                     ++res->test_cases_passed;

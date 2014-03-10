@@ -14,9 +14,9 @@ namespace cute {
 
             template<typename T>
             struct expression {
-                T const obj;
+                T const& obj;
 
-                inline expression(T obj_) : obj(std::move(obj_)) { }
+                inline expression(T const& obj_) : obj(obj_) { }
 
                 inline operator std::string() const { return to_string(obj); }
 
@@ -36,7 +36,6 @@ namespace cute {
                 inline std::string bin_op_to_string(char const* op, R const& rhs) const {
                     std::ostringstream os; os << to_string(obj) << ' ' << op << ' ' << to_string(rhs); return os.str();
                 }
-                
             };
 
             template<typename T>
