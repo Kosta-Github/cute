@@ -22,17 +22,26 @@ namespace cute {
     inline std::ostream& command_line_reporter(std::ostream& os, test_result const& res) {
         static std::mutex g_mutex; std::lock_guard<std::mutex> lock(g_mutex);
 
+        auto header = res.file;
 #if defined(__GNUG__)
-        os << res.file << ":" << res.line << ": ";
+        header += ":" + std::to_string(res.line) + ": ";
 #else // defined(__GNUG__)
-        os << res.file << "(" << res.line << "): ";
+        header += "(" + std::to_string(res.line) + "): ";
 #endif // defined(__GNUG__)
-        os << (res.pass ? "pass" : "error") << ": ";
+        header += (res.pass ? "pass: " : "error: ");
+
+        os << header;
         if(!res.msg.empty()) { os << res.msg << ": "; }
         os << res.test;
         if(!res.expr.empty()) { os << ": \'" << res.expr << "\'"; }
         os << " [duration: " << res.duration_ms << " ms]";
         os << std::endl;
+
+        for(auto&& expand : res.expansions) {
+            os << header << "    with: " << expand.first;
+            if(!expand.second.empty()) { os << " => " << expand.second; }
+            os << std::endl;
+        }
 
         return os;
     }

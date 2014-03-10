@@ -49,8 +49,8 @@ namespace cute {
                 try {
                     auto const count_start = res->checks_performed.load();
 
-                    --res->checks_performed; // decr by one since CUTE_EXPECT_IMPL() below will increment it again
-                    CUTE_DETAIL_EXPECT(test.file, test.line, ((void)test.test_case(), true), "");
+                    --res->checks_performed; // decr by one since CUTE_DETAIL_ASSERT() below will increment it again
+                    CUTE_DETAIL_ASSERT(test.file, test.line, ((void)test.test_case(), true), "", "");
 
                     auto const count_end = res->checks_performed.load();
                     if(count_start == count_end) {
@@ -64,6 +64,9 @@ namespace cute {
                     rep.line = ex.line;
                     rep.msg  = ex.what();
                     rep.expr = ex.expr;
+                    if((ex.expr != ex.expr_expand) && !ex.expr_expand.empty()) {
+                        rep.expansions.emplace_back(ex.expr, ex.expr_expand);
+                    }
 
                     ++res->test_cases_failed;
                 }

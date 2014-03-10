@@ -15,6 +15,7 @@ namespace cute {
         bool pass;
         std::string msg;
         std::string expr;
+        std::vector<std::pair<std::string, std::string>> expansions;
         std::string file;
         int line;
         std::int64_t duration_ms;
