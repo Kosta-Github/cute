@@ -14,13 +14,13 @@ int main(int argc, char* argv[]) {
     auto normal_reporter = [](cute::test_result const& res) {
         cute::command_line_reporter(res.pass ? std::cout : std::cerr, res);
     };
-    auto pass_res = cute::run(tests, normal_reporter, { "pass" });
+    auto pass_res = cute::run(tests, normal_reporter, "pass");
 
     auto inverse_reporter = [](cute::test_result const& res) {
         auto r = res; r.pass = !r.pass;
         cute::command_line_reporter(r.pass ? std::cout : std::cerr, r);
     };
-    auto fail_res = cute::run(tests, inverse_reporter, { "fail" });
+    auto fail_res = cute::run(tests, inverse_reporter, "fail");
 
     // for this unit test in which we check the correct behavior for
     // passing and failing test cases we need to combine both results
