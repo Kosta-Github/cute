@@ -17,28 +17,20 @@ namespace cute {
         struct exception : std::runtime_error {
             std::string const file;
             int const line;
-            std::vector<capture> captures;
+            captures const caps;
 
             inline exception(
                 std::string msg_,
                 std::string file_,
                 int line_,
-                capture cap1_ = capture(),
-                capture cap2_ = capture(),
-                capture cap3_ = capture(),
-                capture cap4_ = capture(),
-                capture cap5_ = capture()
+                captures caps1_ = captures(),
+                captures caps2_ = captures()
             ) :
                 std::runtime_error(std::move(msg_)),
                 file(std::move(file_)),
-                line(std::move(line_))
-            {
-                if(!cap1_.name.empty()) { captures.emplace_back(std::move(cap1_)); }
-                if(!cap2_.name.empty()) { captures.emplace_back(std::move(cap2_)); }
-                if(!cap3_.name.empty()) { captures.emplace_back(std::move(cap3_)); }
-                if(!cap4_.name.empty()) { captures.emplace_back(std::move(cap4_)); }
-                if(!cap5_.name.empty()) { captures.emplace_back(std::move(cap5_)); }
-            }
+                line(std::move(line_)),
+                caps(std::move(caps1_), std::move(caps2_))
+            { }
         };
 
     } // namespace detail

@@ -50,7 +50,7 @@ namespace cute {
                     auto const count_start = res->checks_performed.load();
 
                     --res->checks_performed; // decr by one since CUTE_DETAIL_ASSERT() below will increment it again
-                    CUTE_DETAIL_ASSERT(((void)test.test_case(), true), test.file, test.line);
+                    CUTE_DETAIL_ASSERT(((void)test.test_case(), true), test.file, test.line, cute::captures(), cute::captures());
 
                     auto const count_end = res->checks_performed.load();
                     if(count_start == count_end) {
@@ -64,7 +64,7 @@ namespace cute {
                     rep.line = ex.line;
                     rep.msg  = ex.what();
 
-                    for(auto&& c : ex.captures) {
+                    for(auto&& c : ex.caps.list) {
                         rep.captures.emplace_back(c);
                     }
 
