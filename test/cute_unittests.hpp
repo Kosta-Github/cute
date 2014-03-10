@@ -69,7 +69,7 @@ CUTE_TEST("test decomposer", "fail") {
     auto b1 = false;
     auto b2 = true;
     auto i1 = int(1510);
-    auto res = (cute::detail::expression_decomposer()->* str2.size() != i1);
+    auto res = (cute::detail::decomposer()->* str2.size() != i1);
 
     std::cout << res << std::endl;
 

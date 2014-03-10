@@ -20,41 +20,44 @@
 #include <string>
 #include <vector>
 
-#define CUTE_DETAIL_EXPECT(EXPR_EVAL, EXPR_TEXT, FILE, LINE) \
+#define CUTE_DETAIL_EXPECT(FILE, LINE, EXPR_EVAL, EXPR_TEXT) \
     try { \
         ++cute::test_suite_result::current().checks_performed; \
         if(!(EXPR_EVAL)) { \
-            throw cute::detail::exception("check failed", EXPR_TEXT, FILE, LINE); \
+            throw cute::detail::exception( \
+                "check failed", FILE, LINE, EXPR_TEXT \
+            ); \
         } \
     } catch(cute::detail::exception const&) { \
         throw; \
     } catch(std::exception const &ex) { \
         throw cute::detail::exception( \
-            "got an unexpected exception with message \"" + std::string(ex.what()) + "\"", EXPR_TEXT, FILE, LINE \
+            "got an unexpected exception with message \"" + std::string(ex.what()) + "\"", FILE, LINE, EXPR_TEXT \
         ); \
     } catch(...) { \
-        throw cute::detail::exception("got an unexpected exception of unknown type", EXPR_TEXT, FILE, LINE); \
+        throw cute::detail::exception( \
+            "got an unexpected exception of unknown type", FILE, LINE, EXPR_TEXT \
+        ); \
     }
 
-#define CUTE_EXPECT(EXPR) CUTE_DETAIL_EXPECT(EXPR, #EXPR, __FILE__, __LINE__)
-#define CUTE_EXPECT_NO_THROW(EXPR) CUTE_DETAIL_EXPECT(((void)(EXPR), true), #EXPR, __FILE__, __LINE__)
+#define CUTE_EXPECT(EXPR) CUTE_DETAIL_EXPECT(__FILE__, __LINE__, EXPR, #EXPR)
+#define CUTE_EXPECT_NO_THROW(EXPR) CUTE_DETAIL_EXPECT(__FILE__, __LINE__, ((void)(EXPR), true), #EXPR)
 
-#define CUTE_EXPECT_THROWS_AS(expr, excpt) \
+#define CUTE_EXPECT_THROWS_AS(EXPR, EXCEPT) \
     for(;;) { \
         try { \
             ++cute::test_suite_result::current().checks_performed; \
-            (void)(expr); \
-        } catch(excpt const&) { \
+            (void)(EXPR); \
+        } catch(EXCEPT const&) { \
             break; \
         } catch(...) { \
         } \
         throw cute::detail::exception( \
-            "didn't get an expected exception of type \"" #excpt "\"", #expr, __FILE__, __LINE__ \
+            "didn't get an expected exception of type \"" #EXCEPT "\"", __FILE__, __LINE__, #EXPR \
         ); \
     }
 
-#define CUTE_EXPECT_THROWS(expr) CUTE_EXPECT_THROWS_AS(expr, std::exception)
-#define CUTE_TEST_CASE(...) __FILE__, __LINE__, __VA_ARGS__, []()
+#define CUTE_EXPECT_THROWS(EXPR) CUTE_EXPECT_THROWS_AS(EXPR, std::exception)
 
 #define CUTE_INIT() \
     cute::detail::test_registry& cute::detail::test_registry::instance() { static test_registry reg; return reg; } \
@@ -144,12 +147,12 @@ namespace cute {
         };
 
         struct exception : std::runtime_error {
-            std::string const expr;
             std::string const file;
             int const line;
+            std::string const expr;
 
-            inline exception(std::string msg_, std::string expr_, std::string file_, int line_) :
-                std::runtime_error(std::move(msg_)), expr(std::move(expr_)), file(std::move(file_)), line(std::move(line_))
+            inline exception(std::string msg_, std::string file_, int line_, std::string expr_) :
+                std::runtime_error(std::move(msg_)), file(std::move(file_)), line(std::move(line_)), expr(std::move(expr_))
             { }
         };
 
@@ -203,62 +206,67 @@ namespace cute {
             { }
         };
 
+    }
 
+    inline std::string to_string(std::nullptr_t const&)     { return "nullptr"; }
+    inline std::string to_string(std::string    const& str) { return ('\"' + str + '\"'); }
+    inline std::string to_string(char const*    const& str) { return (str ? ('\"' + std::string(str) + '\"') : "nullptr"); }
+    inline std::string to_string(char           const& c)   { return ('\'' + std::string(1, c) + '\''); }
+    inline std::string to_string(bool           const& b)   { return (b ? "true" : "false"); }
 
+    template<typename T>
+    inline auto to_string(T const& value) -> std::string { std::ostringstream os; os << value; return os.str(); }
 
+    template<typename T>
+    inline std::string to_string(std::shared_ptr<T> const& p) { std::ostringstream os; os << p.get(); return os.str(); }
 
-        inline std::string to_string(std::nullptr_t const&)     { return "nullptr"; }
-        inline std::string to_string(std::string    const& str) { return ('\"' + str + '\"'); }
-        inline std::string to_string(char const*    const& str) { return (str ? ('\"' + std::string(str) + '\"') : "nullptr"); }
-        inline std::string to_string(char           const& c)   { return ('\'' + std::string(1, c) + '\''); }
-        inline std::string to_string(bool           const& b)   { return (b ? "true" : "false"); }
+    template<typename T>
+    inline std::string to_string(std::unique_ptr<T> const& p) { std::ostringstream os; os << p.get(); return os.str(); }
 
-        template<typename T>
-        inline auto to_string(T const& value) -> std::string {
-            std::ostringstream os; os << value; return os.str();
-        }
+    template<typename T>
+    inline std::string to_string(std::weak_ptr<T> const& p) { std::ostringstream os; os << p.get(); return os.str(); }
 
-        template<typename L>
-        inline std::string to_string(std::string const& op, L const& lhs) {
-            std::ostringstream os; os << op << ' ' << to_string(lhs); return os.str();
-        }
-            
-        template<typename L, typename R>
-        inline std::string to_string(L const& lhs, std::string const& op, R const& rhs) {
-            std::ostringstream os; os << to_string(lhs) << ' ' << op << ' ' << to_string(rhs); return os.str();
-        }
+    namespace detail {
 
-        template<typename T>
-        struct expression;
+        struct decomposer {
 
-        struct expression_decomposer {
+            template<typename T>
+            struct expression {
+                const T obj;
+
+                inline expression(T obj_) : obj(std::move(obj_)) { }
+
+                inline operator std::string() const { return to_string(obj); }
+
+                template<typename R> inline std::string operator!() const { std::ostringstream os; os << '!' << to_string(obj); return os.str(); }
+
+                template<typename R> inline std::string operator==(R const& rhs) const { return bin_op_to_string("==", rhs); }
+                template<typename R> inline std::string operator!=(R const& rhs) const { return bin_op_to_string("!=", rhs); }
+                template<typename R> inline std::string operator< (R const& rhs) const { return bin_op_to_string("<" , rhs); }
+                template<typename R> inline std::string operator<=(R const& rhs) const { return bin_op_to_string("<=", rhs); }
+                template<typename R> inline std::string operator> (R const& rhs) const { return bin_op_to_string(">" , rhs); }
+                template<typename R> inline std::string operator>=(R const& rhs) const { return bin_op_to_string(">=", rhs); }
+
+                template<typename R> inline std::string operator&&(R const& rhs) const { return bin_op_to_string("&&", rhs); }
+                template<typename R> inline std::string operator||(R const& rhs) const { return bin_op_to_string("||", rhs); }
+
+                template<typename L>
+                inline std::string unary_op_to_string(std::string const& op, L const& lhs) { std::ostringstream os; os << op << ' ' << to_string(lhs); return os.str(); }
+
+                template<typename R>
+                inline std::string bin_op_to_string(char const* op, R const& rhs) const {
+                    std::ostringstream os; os << to_string(obj) << ' ' << op << ' ' << to_string(rhs); return os.str();
+                }
+                
+            };
+
             template<typename T>
             inline expression<T const&> operator->*(T const& op) {
                 return expression<T const&>(op);
             }
         };
 
-        template<typename T>
-        struct expression {
-            const T obj;
 
-            inline expression(T obj_) : obj(std::move(obj_)) { }
-
-            inline operator std::string() const { return to_string(obj); }
-
-            template<typename R> inline std::string operator! ()             const { return to_string("!", obj); }
-
-            template<typename R> inline std::string operator==(R const& rhs) const { return to_string(obj, "==", rhs); }
-            template<typename R> inline std::string operator!=(R const& rhs) const { return to_string(obj, "!=", rhs); }
-            template<typename R> inline std::string operator< (R const& rhs) const { return to_string(obj, "<" , rhs); }
-            template<typename R> inline std::string operator<=(R const& rhs) const { return to_string(obj, "<=", rhs); }
-            template<typename R> inline std::string operator> (R const& rhs) const { return to_string(obj, ">" , rhs); }
-            template<typename R> inline std::string operator>=(R const& rhs) const { return to_string(obj, ">=", rhs); }
-
-            template<typename R> inline std::string operator&&(R const& rhs) const { return to_string(obj, "&&", rhs); }
-            template<typename R> inline std::string operator||(R const& rhs) const { return to_string(obj, "||", rhs); }
-        };
-            
 
 
 
@@ -321,11 +329,11 @@ namespace cute {
                 auto const count_start = ctx->checks_performed.load();
 
                 --ctx->checks_performed; // decr by one since CUTE_EXPECT_IMPL() below will increment it again
-                CUTE_DETAIL_EXPECT(((void)test.test_case(), true), "", test.file, test.line);
+                CUTE_DETAIL_EXPECT(test.file, test.line, ((void)test.test_case(), true), "");
 
                 auto const count_end = ctx->checks_performed.load();
                 if(count_start == count_end) {
-                    throw cute::detail::exception("no check performed in test case", "", test.file, test.line);
+                    throw cute::detail::exception("no check performed in test case", test.file, test.line, "");
                 }
 
                 ++ctx->test_cases_passed;
