@@ -61,17 +61,8 @@ CUTE_TEST("a test case should fail if no check is performed in it", "fail") {
     // nothing to do here
 }
 
-/*
-CUTE_TEST("test expression decomposition", "fail") {
+CUTE_TEST("CUTE_ASSERT() can capture more than one variable with the help of CUTE_CAPTURE()", "fail") {
     auto str1 = std::string("hello");
     auto str2 = std::string("world");
-    CUTE_ASSERT(str1 == str2);
+    CUTE_ASSERT(str1 == str2, CUTE_CAPTURE(str1), CUTE_CAPTURE(str2));
 }
-
-static size_t size(std::string const& s) { return s.size(); }
-
-CUTE_TEST("SIZE test expression decomposition", "fail") {
-    auto str1 = std::string("hello");
-    CUTE_ASSERT(size(str1) == 0);
-}
-*/

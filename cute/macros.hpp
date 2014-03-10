@@ -9,23 +9,23 @@
 #define CUTE_DETAIL_UNIQUE_NAME_LINE(NAME, LINE) CUTE_DETAIL_UNIQUE_NAME_LINE_2(NAME, LINE)
 #define CUTE_DETAIL_UNIQUE_NAME(NAME) CUTE_DETAIL_UNIQUE_NAME_LINE(NAME, __LINE__)
 
-#define CUTE_DETAIL_ASSERT(FILE, LINE, EXPR_EVAL, EXPR_TEXT, EXPR_EXPAND) \
+#define CUTE_DETAIL_ASSERT(FILE, LINE, EXPR_EVAL, ...) \
     try { \
         ++cute::test_suite_result::current().checks_performed; \
         if(!(EXPR_EVAL)) { \
             throw cute::detail::exception( \
-                "check failed", FILE, LINE, EXPR_TEXT, EXPR_EXPAND \
+                "test failed", FILE, LINE, __VA_ARGS__ \
             ); \
         } \
     } catch(cute::detail::exception const&) { \
         throw; \
     } catch(std::exception const &ex) { \
         throw cute::detail::exception( \
-            "got an unexpected exception with message \"" + std::string(ex.what()) + "\"", FILE, LINE, EXPR_TEXT, EXPR_EXPAND \
+            "got an unexpected exception with message \"" + std::string(ex.what()) + "\"", FILE, LINE, __VA_ARGS__ \
         ); \
     } catch(...) { \
         throw cute::detail::exception( \
-            "got an unexpected exception of unknown type", FILE, LINE, EXPR_TEXT, EXPR_EXPAND \
+            "got an unexpected exception of unknown type", FILE, LINE, __VA_ARGS__ \
         ); \
     }
 
@@ -39,7 +39,7 @@
         } catch(...) { \
         } \
         throw cute::detail::exception( \
-            "didn't get an expected exception of type \"" #EXCEPT "\"", __FILE__, __LINE__, #EXPR, "" \
+            "didn't get an expected exception of type \"" #EXCEPT "\"", __FILE__, __LINE__, cute::capture(#EXPR, "") \
         ); \
     }
 
@@ -60,10 +60,12 @@
 #define CUTE_DETAIL_DECOMPOSE(EXPR) \
     static_cast<std::string>(cute::detail::decomposer()->* EXPR)
 
-#define CUTE_ASSERT(EXPR)                   CUTE_DETAIL_ASSERT(__FILE__, __LINE__, EXPR,                 #EXPR, CUTE_DETAIL_DECOMPOSE(EXPR))
-#define CUTE_ASSERT_THROWS_NOT(EXPR)        CUTE_DETAIL_ASSERT(__FILE__, __LINE__, ((void)(EXPR), true), #EXPR, "")
+#define CUTE_ASSERT(EXPR, ...)              CUTE_DETAIL_ASSERT(__FILE__, __LINE__, EXPR,                 CUTE_CAPTURE(EXPR),     __VA_ARGS__)
+#define CUTE_ASSERT_THROWS_NOT(EXPR)        CUTE_DETAIL_ASSERT(__FILE__, __LINE__, ((void)(EXPR), true), cute::capture(#EXPR, ""))
 #define CUTE_ASSERT_THROWS(EXPR)            CUTE_DETAIL_ASSERT_THROWS_AS(EXPR, std::exception)
 #define CUTE_ASSERT_THROWS_AS(EXPR, EXCEPT) CUTE_DETAIL_ASSERT_THROWS_AS(EXPR, EXCEPT)
+
+#define CUTE_CAPTURE(EXPR) cute::capture(#EXPR, CUTE_DETAIL_DECOMPOSE(EXPR))
 
 #define CUTE_INIT() CUTE_DETAIL_INIT()
 

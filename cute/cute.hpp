@@ -37,9 +37,9 @@ namespace cute {
         os << " [duration: " << res.duration_ms << " ms]";
         os << std::endl;
 
-        for(auto&& expand : res.expansions) {
-            os << header << "    with: " << expand.first;
-            if(!expand.second.empty()) { os << " => " << expand.second; }
+        for(auto&& c : res.captures) {
+            os << header << "    with: " << c.name;
+            if(!c.value.empty()) { os << " => " << c.value; }
             os << std::endl;
         }
 
