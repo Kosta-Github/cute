@@ -50,19 +50,20 @@ namespace cute {
                     auto const count_start = res->checks_performed.load();
 
                     --res->checks_performed; // decr by one since CUTE_DETAIL_ASSERT() below will increment it again
-                    CUTE_DETAIL_ASSERT(((void)test.test_case(), true), test.file, test.line, cute::captures(), cute::captures());
+                    CUTE_DETAIL_ASSERT(((void)test.test_case(), true), test.file, test.line, "", cute::captures(), cute::captures());
 
                     auto const count_end = res->checks_performed.load();
                     if(count_start == count_end) {
-                        throw cute::detail::exception("no check performed in test case", test.file, test.line);
+                        throw cute::detail::exception("no check performed in test case", test.file, test.line, "");
                     }
 
                     ++res->test_cases_passed;
                 } catch(detail::exception const& ex) {
-                    rep.pass = false;
-                    rep.file = ex.file;
-                    rep.line = ex.line;
-                    rep.msg  = ex.what();
+                    rep.pass    = false;
+                    rep.file    = ex.file;
+                    rep.line    = ex.line;
+                    rep.reason  = ex.what();
+                    rep.expr    = ex.expr;
 
                     for(auto&& c : ex.caps.list) {
                         rep.captures.emplace_back(c);

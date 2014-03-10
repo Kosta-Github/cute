@@ -13,7 +13,7 @@ namespace cute {
     struct test_result {
         std::string test;
         bool pass;
-        std::string msg;
+        std::string reason;
         std::string expr;
         std::vector<capture> captures;
         std::string file;
@@ -21,10 +21,10 @@ namespace cute {
         std::int64_t duration_ms;
 
         inline test_result(
-            std::string test_ = "", bool pass_ = true, std::string msg_ = "", std::string expr_ = "",
+            std::string test_ = "", bool pass_ = true, std::string reason_ = "", std::string expr_ = "",
             std::string file_ = "", int line_ = 0, std::size_t duration_ms_ = 0
         ) :
-            test(std::move(test_)), pass(std::move(pass_)), msg(std::move(msg_)), expr(std::move(expr)),
+            test(std::move(test_)), pass(std::move(pass_)), reason(std::move(reason_)), expr(std::move(expr)),
             file(std::move(file_)), line(std::move(line_)), duration_ms(std::move(duration_ms_))
         { }
     };

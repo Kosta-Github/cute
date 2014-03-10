@@ -30,17 +30,17 @@ namespace cute {
 #endif // defined(__GNUG__)
         header += (res.pass ? "pass: " : "error: ");
 
-        os << header;
-        if(!res.msg.empty()) { os << res.msg << ": "; }
-        os << res.test;
-        if(!res.expr.empty()) { os << ": \'" << res.expr << "\'"; }
-        os << " [duration: " << res.duration_ms << " ms]";
-        os << std::endl;
+        os << header << res.test << " [duration: " << res.duration_ms << " ms]" << std::endl;
 
-        for(auto&& c : res.captures) {
-            os << header << "    with: " << c.name;
-            if(!c.value.empty()) { os << " => " << c.value; }
-            os << std::endl;
+        if(res.pass) {
+            if(!res.reason.empty()) { os << header << "    reason:     "    << res.reason   << std::endl; }
+            if(!res.expr.empty())   { os << header << "    expression: "    << res.expr     << std::endl; }
+
+            for(auto&& c : res.captures) {
+                os << header << "    with:       " << c.name;
+                if(!c.value.empty()) { os << " => " << c.value; }
+                os << std::endl;
+            }
         }
 
         return os;
