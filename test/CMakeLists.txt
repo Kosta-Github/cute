@@ -6,7 +6,8 @@ message("configure: cute unit tests")
 add_executable(
     cute_unittests
     main.cpp
-    cute_unittests.hpp
+    cute_unittests.cpp
+    ../cute/context.hpp
     ../cute/cute.hpp
     ../cute/decomposer.hpp
     ../cute/exception.hpp
