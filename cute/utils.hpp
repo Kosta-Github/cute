@@ -5,10 +5,11 @@
 
 #pragma once
 
+#include "utils_delete_folder.hpp"
+
 #include <chrono>
 #include <cstdint>
 #include <set>
-#include <string>
 
 namespace cute {
     namespace detail {
@@ -63,6 +64,6 @@ namespace cute {
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
             return static_cast<std::int64_t>(diff);
         }
-        
+
     } // namespace detail
 } // namespace cute

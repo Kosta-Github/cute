@@ -30,6 +30,7 @@ add_executable(
     ../cute/test_suite_result.hpp
     ../cute/to_string.hpp
     ../cute/utils.hpp
+    ../cute/utils_delete_folder.hpp
 )
      
 add_test(
