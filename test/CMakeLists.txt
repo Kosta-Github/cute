@@ -15,7 +15,8 @@ endif(CUTE_HAS_NOEXCEPT)
 add_executable(
     cute_unittests
     main.cpp
-    cute_unittests.cpp
+    cute_core_unittests.cpp
+    cute_cleanup_guard_unittests.cpp
     ../cute/capture.hpp
     ../cute/cleanup_guard.hpp
     ../cute/context.hpp
