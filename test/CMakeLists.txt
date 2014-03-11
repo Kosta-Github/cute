@@ -3,6 +3,15 @@ cmake_minimum_required(VERSION 2.8)
 project(cute CXX)
 message("configure: cute unit tests")
 
+include(CheckCXXSourceCompiles)
+CHECK_CXX_SOURCE_COMPILES(
+    "struct A { A() noexcept { } }; int main(int argc, const char* argv[]) { return 0; }"
+    CUTE_HAS_NOEXCEPT
+)
+if(CUTE_HAS_NOEXCEPT)
+    add_definitions(-DCUTE_HAS_NOEXCEPT)
+endif(CUTE_HAS_NOEXCEPT)
+
 add_executable(
     cute_unittests
     main.cpp

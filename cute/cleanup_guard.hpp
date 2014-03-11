@@ -9,6 +9,12 @@
 #include <cassert>
 #include <functional>
 
+#if defined(CUTE_HAS_NOEXCEPT)
+#   define CUTE_NOEXCEPT noexcept
+#else // defined(CUTE_HAS_NOEXCEPT)
+#   define CUTE_NOEXCEPT throw()
+#endif // defined(CUTE_HAS_NOEXCEPT)
+
 namespace cute {
 
     /// The cleanup_guard helper class (also known as scope_guard) uses the RAII principle for
@@ -58,8 +64,8 @@ namespace cute {
         inline explicit cleanup_guard(FUNC&& func) : m_func(std::forward<FUNC>(func)) { }
 
         // support move semantics
-        inline cleanup_guard(cleanup_guard&& other) noexcept { operator=(std::move(other)); }
-        inline cleanup_guard& operator=(cleanup_guard&& other) noexcept {
+        inline cleanup_guard(cleanup_guard&& other) CUTE_NOEXCEPT { operator=(std::move(other)); }
+        inline cleanup_guard& operator=(cleanup_guard&& other) CUTE_NOEXCEPT {
             assert(!m_func); std::swap(m_func, other.m_func); return *this;
         }
 
