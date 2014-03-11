@@ -8,6 +8,7 @@ add_executable(
     main.cpp
     cute_unittests.cpp
     ../cute/capture.hpp
+    ../cute/cleanup_guard.hpp
     ../cute/context.hpp
     ../cute/cute.hpp
     ../cute/decomposer.hpp
