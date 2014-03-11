@@ -11,17 +11,17 @@ CUTE_INIT();
 int main(int argc, char* argv[]) {
     auto pass_ctx = cute::context();
     pass_ctx.include_tags = "pass";
-    pass_ctx.reporter = [](cute::test_result const& res) {
+    pass_ctx.reporters.emplace_back([](cute::test_result const& res) {
         cute::command_line_reporter(res.pass ? std::cout : std::cerr, res);
-    };
+    });
     auto pass_res = pass_ctx.run();
 
     auto fail_ctx = cute::context();
     fail_ctx.include_tags = "fail";
-    fail_ctx.reporter = [](cute::test_result const& res) {
+    fail_ctx.reporters.emplace_back([](cute::test_result const& res) {
         auto r = res; r.pass = !r.pass;
         cute::command_line_reporter(r.pass ? std::cout : std::cerr, r);
-    };
+    });
     auto fail_res = fail_ctx.run();
 
     // for this unit test in which we check the correct behavior for

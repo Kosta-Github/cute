@@ -17,7 +17,7 @@
 namespace cute {
 
     struct context {
-        std::function<void(test_result const& rep)> reporter;
+        std::vector<std::function<void(test_result const& rep)>> reporters;
         std::string include_tags;
         std::string exclude_tags;
 
@@ -75,7 +75,9 @@ namespace cute {
                 auto const time_end = detail::time_now();
                 rep.duration_ms = detail::time_diff_ms(time_start, time_end);
 
-                if(reporter) { reporter(rep); }
+                for(auto&& reporter : reporters) {
+                    if(reporter) { reporter(rep); }
+                }
             }
 
             auto const time_end_all = detail::time_now();
