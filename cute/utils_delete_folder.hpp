@@ -13,6 +13,7 @@
 #   include <direct.h>
 #else // defined(WIN32)
 #   include <dirent.h>
+#   include <sys/stat.h>
 #endif // defined(WIN32)
 
 namespace cute {
@@ -53,7 +54,7 @@ namespace cute {
 
         inline bool delete_folder(std::string const& dir) {
             auto dp = opendir(dir.c_str());
-            if(!db) { return false; }
+            if(!dp) { return false; }
 
             bool success = true;
             while(auto ep = readdir(dp)) {
