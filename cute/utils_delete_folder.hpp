@@ -22,6 +22,12 @@ namespace cute {
 
 #if defined(WIN32)
 
+        inline std::string get_temp_folder() {
+            char buf[MAX_PATH+1] = { 0x00 };
+            if(GetTempPath(MAX_PATH, buf)) { return buf; }
+            return ".";
+        }
+
         inline bool delete_folder(std::string dir) {
             std::replace(dir.begin(), dir.end(), '/', '\\');
             while(!dir.empty() && (dir.back() == '\\')) { dir.pop_back(); } // remove trailing backslashes
@@ -53,19 +59,30 @@ namespace cute {
 
 #else // defined(WIN32)
 
-        inline bool delete_folder(std::string const& dir) {
+        inline bool delete_folder(std::string dir) {
+            while(!dir.empty() && (dir.back() == '/')) { dir.pop_back(); } // remove trailing slashes
+
             auto dp = opendir(dir.c_str());
             if(!dp) { return false; }
 
             bool success = true;
             while(auto ep = readdir(dp)) {
-                auto sub_path = (dir + "/") + ep->d_name;
+                auto sub = std::string(ep->d_name);
+                if((sub != ".") && (sub != "..")) { // skip "." and ".." folders
+                    auto sub_path = dir + "/" + sub;
 
-                struct stat stat_buf;
-                if((stat(sub_path.c_str(), &stat_buf) == 0) && (S_ISDIR(stat_buf.st_mode) != 0)) {
-                    success = delete_folder(sub_path) && success;
-                } else {
-                    success = (unlink(sub_path.c_str()) == 0) && success;
+                    struct stat stat_buf;
+                    if(stat(sub_path.c_str(), &stat_buf) == 0) {
+                        if(S_ISREG(stat_buf.st_mode) || S_ISLNK(stat_buf.st_mode)) {
+                            success = (unlink(sub_path.c_str()) == 0) && success;
+                        } else if(S_ISDIR(stat_buf.st_mode)) {
+                            success = delete_folder(sub_path) && success;
+                        } else {
+                            success = false;
+                        }
+                    } else {
+                        success = false;
+                    }
                 }
             }
 
