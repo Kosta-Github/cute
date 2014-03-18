@@ -57,6 +57,11 @@ namespace cute {
                         throw cute::detail::exception("no check performed in test case", test.file, test.line, "");
                     }
 
+                    // ensure that the temp folder can be cleared and that no file locks exists after the test case
+                    if(!res->delete_temp_folder()) {
+                        throw cute::detail::exception("could not cleanup temp folder", test.file, test.line, "");
+                    }
+
                     ++res->test_cases_passed;
                 } catch(detail::exception const& ex) {
                     rep.pass    = false;
@@ -68,6 +73,9 @@ namespace cute {
                     for(auto&& c : ex.caps.list) {
                         rep.captures.emplace_back(c);
                     }
+
+                    // ensure that the temp folder gets also cleared even in case of a test failure
+                    res->delete_temp_folder();
 
                     ++res->test_cases_failed;
                 }

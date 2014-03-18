@@ -15,8 +15,9 @@ endif(CUTE_HAS_NOEXCEPT)
 add_executable(
     cute_unittests
     main.cpp
-    cute_core_unittests.cpp
     cute_cleanup_guard_unittests.cpp
+    cute_core_unittests.cpp
+    cute_file_unittests.cpp
     ../cute/capture.hpp
     ../cute/cleanup_guard.hpp
     ../cute/context.hpp
@@ -30,7 +31,7 @@ add_executable(
     ../cute/test_suite_result.hpp
     ../cute/to_string.hpp
     ../cute/utils.hpp
-    ../cute/utils_delete_folder.hpp
+    ../cute/utils_file.hpp
 )
      
 add_test(

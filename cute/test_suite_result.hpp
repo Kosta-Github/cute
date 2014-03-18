@@ -5,8 +5,11 @@
 
 #pragma once
 
+#include "utils_file.hpp"
+
 #include <atomic>
 #include <cassert>
+#include <mutex>
 
 namespace cute {
 
@@ -28,9 +31,31 @@ namespace cute {
 
         static inline test_suite_result& current() { assert(g_current); return *g_current; }
 
+        inline std::string create_temp_folder() {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if(m_temp_folder.empty()) {
+                m_temp_folder = detail::create_temp_folder();
+            }
+            return m_temp_folder;
+        }
+
+        inline bool delete_temp_folder() {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if(m_temp_folder.empty()) { return true; }
+            std::string f; std::swap(f, m_temp_folder);
+            return detail::delete_folder(f);
+        }
+
     private:
         static test_suite_result* g_current;
         test_suite_result* const prev_res;
+
+        std::mutex m_mutex;
+        std::string m_temp_folder;
     };
+
+    inline std::string temp_folder() {
+        return test_suite_result::current().create_temp_folder();
+    }
 
 } // namespace cute

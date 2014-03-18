@@ -22,9 +22,10 @@ namespace cute {
 
 #if defined(WIN32)
 
-        inline std::string get_temp_folder() {
+        inline std::string create_temp_folder() {
             char buf[MAX_PATH+1] = { 0x00 };
             if(GetTempPath(MAX_PATH, buf)) { return buf; }
+            assert(false && "not implemented yet");
             return ".";
         }
 
@@ -59,8 +60,15 @@ namespace cute {
 
 #else // defined(WIN32)
 
+        inline std::string create_temp_folder() {
+            auto dir = std::string("/tmp/cute_XXXXXX");
+            auto res = mkdtemp(&dir[0]);
+            return (res ? (dir + '/') : "./");
+        }
+
         inline bool delete_folder(std::string dir) {
             while(!dir.empty() && (dir.back() == '/')) { dir.pop_back(); } // remove trailing slashes
+            if(dir.empty()) { return false; }
 
             auto dp = opendir(dir.c_str());
             if(!dp) { return false; }
