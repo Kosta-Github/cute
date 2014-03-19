@@ -9,6 +9,7 @@
 #include <string>
 
 #if defined(WIN32)
+#   include <ctime>
 #   include <Windows.h>
 #   include <direct.h>
 #else // defined(WIN32)
@@ -24,9 +25,15 @@ namespace cute {
 
         inline std::string create_temp_folder() {
             char buf[MAX_PATH+1] = { 0x00 };
-            if(GetTempPath(MAX_PATH, buf)) { return buf; }
-            assert(false && "not implemented yet");
-            return ".";
+            if(!GetTempPath(MAX_PATH, buf)) { return ""; }
+
+            auto folder = std::string(buf);
+            while(!folder.empty() && (folder.back() == '\\')) { folder.pop_back(); }
+
+            folder += std::string("\\cute_") + std::to_string(std::time(nullptr)) + '\\';
+            if(_mkdir(folder.c_str())) { return ""; }
+
+            return folder;
         }
 
         inline bool delete_folder(std::string dir) {
@@ -63,7 +70,7 @@ namespace cute {
         inline std::string create_temp_folder() {
             auto dir = std::string("/tmp/cute_XXXXXX");
             auto res = mkdtemp(&dir[0]);
-            return (res ? (dir + '/') : "./");
+            return (res ? (dir + '/') : "");
         }
 
         inline bool delete_folder(std::string dir) {
