@@ -5,8 +5,12 @@
 
 #pragma once
 
+#include "exception.hpp"
+#include "test.hpp"
 #include "test_suite_result.hpp"
 #include "utils_file.hpp"
+
+#include <vector>
 
 namespace cute {
     namespace detail {
@@ -26,12 +30,24 @@ namespace cute {
                 g_current = m_previous;
             }
 
+            test const* current_test;
+
             std::atomic<std::size_t> test_cases;
             std::atomic<std::size_t> test_cases_passed;
             std::atomic<std::size_t> test_cases_failed;
             std::atomic<std::size_t> test_cases_skipped;
             std::atomic<std::size_t> checks_performed;
             std::atomic<std::size_t> duration_ms;
+
+            std::mutex exceptions_mutex;
+            std::vector<exception> exceptions;
+            inline void add_exception(exception ex, bool throw_exception = true) {
+                std::lock_guard<std::mutex> lock(exceptions_mutex);
+                exceptions.emplace_back(std::move(ex));
+                if(throw_exception) {
+                    throw exceptions.back();
+                }
+            }
 
             std::mutex temp_folder_mutex;
             std::string temp_folder;

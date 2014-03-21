@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "cleanup_guard.hpp"
 #include "eval_context.hpp"
 #include "exception.hpp"
 #include "macros.hpp"
@@ -12,6 +13,8 @@
 #include "test_registry.hpp"
 #include "test_result.hpp"
 #include "test_suite_result.hpp"
+
+#include <iostream>
 
 namespace cute {
 
@@ -33,12 +36,17 @@ namespace cute {
         ) const {
             auto const time_start_all = detail::time_now();
 
+            // set a new termination handler which prints out the current test case and aborts the application
+            auto prev_termination_handler = std::set_terminate(terminate_handler);
+            auto restore_termination_handler = cute::cleanup_guard([&]() { std::set_terminate(prev_termination_handler); });
+
             detail::eval_context eval;
 
             auto const incl_tags = detail::parse_tags(include_tags);
             auto const excl_tags = detail::parse_tags(exclude_tags);
 
             for(auto&& test : tests) {
+                eval.current_test = &test;
                 ++eval.test_cases;
 
                 if(detail::skip_test(test.tags, incl_tags, excl_tags)) {
@@ -65,6 +73,10 @@ namespace cute {
                         throw cute::detail::exception("could not cleanup temp folder", test.file, test.line, "");
                     }
 
+                    if(!eval.exceptions.empty()) {
+                        throw eval.exceptions.front();
+                    }
+
                     ++eval.test_cases_passed;
                 } catch(detail::exception const& ex) {
                     rep.pass    = false;
@@ -89,12 +101,26 @@ namespace cute {
                 for(auto&& reporter : reporters) {
                     if(reporter) { reporter(rep); }
                 }
+
+                eval.exceptions.clear();
             }
+
+            eval.current_test = nullptr;
 
             auto const time_end_all = detail::time_now();
             eval.duration_ms = detail::time_diff_ms(time_start_all, time_end_all);
 
             return eval.result();
+        }
+
+    private:
+        static void terminate_handler() {
+            auto cur_test = cute::detail::eval_context::current().current_test;
+            std::cerr << "std::terminate() call detected in test case: ";
+            std::cerr << "'" << (cur_test ? cur_test->name : "<unknown>") << "'. ";
+            std::cerr << "Aborting..." << std::endl;
+
+            std::abort();
         }
 
     };

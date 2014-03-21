@@ -13,6 +13,7 @@
 #include "test_registry.hpp"
 #include "test_result.hpp"
 #include "test_suite_result.hpp"
+#include "thread.hpp"
 #include "utils.hpp"
 
 #include <iostream>
