@@ -14,7 +14,7 @@
 #include "test_result.hpp"
 #include "test_suite_result.hpp"
 
-#include <iostream>
+#include <cstdlib>
 
 namespace cute {
 
@@ -41,6 +41,7 @@ namespace cute {
             auto restore_termination_handler = cute::cleanup_guard([&]() { std::set_terminate(prev_termination_handler); });
 
             detail::eval_context eval;
+            eval.reporters = &reporters;
 
             auto const incl_tags = detail::parse_tags(include_tags);
             auto const excl_tags = detail::parse_tags(exclude_tags);
@@ -115,10 +116,15 @@ namespace cute {
 
     private:
         static void terminate_handler() {
-            auto cur_test = cute::detail::eval_context::current().current_test;
-            std::cerr << "std::terminate() call detected in test case: ";
-            std::cerr << "'" << (cur_test ? cur_test->name : "<unknown>") << "'. ";
-            std::cerr << "Aborting..." << std::endl;
+            auto&& ctx = cute::detail::eval_context::current();
+
+            if(auto test = ctx.current_test) {
+                auto rep = test_result(test->name, false, "std::terminate() called", "", test->file, test->line, 0);
+
+                for(auto&& reporter : *ctx.reporters) {
+                    if(reporter) { reporter(rep); }
+                }
+            }
 
             std::abort();
         }

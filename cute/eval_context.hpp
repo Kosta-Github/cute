@@ -7,6 +7,7 @@
 
 #include "exception.hpp"
 #include "test.hpp"
+#include "test_result.hpp"
 #include "test_suite_result.hpp"
 #include "utils_file.hpp"
 
@@ -17,6 +18,7 @@ namespace cute {
 
         struct eval_context {
             eval_context() :
+                reporters(nullptr), current_test(nullptr),
                 test_cases(0), test_cases_passed(0),
                 test_cases_failed(0), test_cases_skipped(0),
                 checks_performed(0), duration_ms(0),
@@ -29,6 +31,8 @@ namespace cute {
                 assert(g_current == this);
                 g_current = m_previous;
             }
+
+            std::vector<std::function<void(test_result const& rep)>> const* reporters;
 
             test const* current_test;
 
