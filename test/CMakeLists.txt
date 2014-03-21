@@ -37,6 +37,7 @@ add_executable(
     ../cute/test_registry.hpp
     ../cute/test_result.hpp
     ../cute/test_suite_result.hpp
+    ../cute/tick.hpp
     ../cute/thread.hpp
     ../cute/to_string.hpp
     ../cute/utils.hpp
