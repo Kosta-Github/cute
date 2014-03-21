@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "context.hpp"
 #include "decomposer.hpp"
 #include "exception.hpp"
 #include "macros.hpp"

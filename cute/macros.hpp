@@ -11,7 +11,7 @@
 
 #define CUTE_DETAIL_ASSERT(EXPR_EVAL, FILE, LINE, EXPR_TEXT, CAPS1, CAP2)                                                                                   \
     try {                                                                                                                                                   \
-        ++cute::test_suite_result::current().checks_performed;                                                                                              \
+        ++cute::detail::eval_context::current().checks_performed;                                                                                              \
         if(!(EXPR_EVAL)) {                                                                                                                                  \
             throw cute::detail::exception("", FILE, LINE, EXPR_TEXT, CAPS1, CAP2);                                                                          \
         }                                                                                                                                                   \
@@ -27,7 +27,7 @@
     {                                                                                                                               \
         auto CUTE_DETAIL_UNIQUE_NAME(exception_ok) = false;                                                                         \
         try {                                                                                                                       \
-            ++cute::test_suite_result::current().checks_performed;                                                                  \
+            ++cute::detail::eval_context::current().checks_performed;                                                                  \
             (void)(EXPR);                                                                                                           \
         } catch(EXCEPT const&) { CUTE_DETAIL_UNIQUE_NAME(exception_ok) = true;                                                      \
         } catch(...) { }                                                                                                            \
@@ -38,7 +38,7 @@
 
 #define CUTE_DETAIL_INIT()                                                                                          \
     cute::detail::test_registry& cute::detail::test_registry::instance() { static test_registry reg; return reg; }  \
-    cute::test_suite_result* cute::test_suite_result::g_current = nullptr;
+    cute::detail::eval_context* cute::detail::eval_context::g_current = nullptr;
 
 
 #define CUTE_DETAIL_TEST(...)                                                           \

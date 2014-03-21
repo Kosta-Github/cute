@@ -27,12 +27,12 @@ int main(int argc, char* argv[]) {
     // for this unit test in which we check the correct behavior for
     // passing and failing test cases we need to combine both results
     // by inverting the "failed" cases...
-    auto tests_all          = pass_res->test_cases.load();
-    auto tests_passed       = pass_res->test_cases_passed   + fail_res->test_cases_failed;
-    auto tests_failed       = pass_res->test_cases_failed   + fail_res->test_cases_passed;
-    auto tests_skipped      = pass_res->test_cases_skipped  + fail_res->test_cases_skipped - tests_all;
-    auto checks_performed   = pass_res->checks_performed    + fail_res->checks_performed;
-    auto duration_ms        = pass_res->duration_ms         + fail_res->duration_ms;
+    auto tests_all          = pass_res.test_cases;
+    auto tests_passed       = pass_res.test_cases_passed   + fail_res.test_cases_failed;
+    auto tests_failed       = pass_res.test_cases_failed   + fail_res.test_cases_passed;
+    auto tests_skipped      = pass_res.test_cases_skipped  + fail_res.test_cases_skipped - tests_all;
+    auto checks_performed   = pass_res.checks_performed    + fail_res.checks_performed;
+    auto duration_ms        = pass_res.duration_ms         + fail_res.duration_ms;
 
     auto self_test_failed = ((tests_all == 0) || (tests_failed > 0) || (tests_skipped > 0));
 

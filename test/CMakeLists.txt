@@ -23,6 +23,7 @@ add_executable(
     ../cute/context.hpp
     ../cute/cute.hpp
     ../cute/decomposer.hpp
+    ../cute/eval_context.hpp
     ../cute/exception.hpp
     ../cute/macros.hpp
     ../cute/test.hpp

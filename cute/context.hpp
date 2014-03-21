@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "eval_context.hpp"
 #include "exception.hpp"
 #include "macros.hpp"
 #include "test.hpp"
@@ -12,34 +13,36 @@
 #include "test_result.hpp"
 #include "test_suite_result.hpp"
 
-#include <memory>
-
 namespace cute {
+
+    inline std::string temp_folder() {
+        return cute::detail::eval_context::current().create_temp_folder();
+    }
 
     struct context {
         std::vector<std::function<void(test_result const& rep)>> reporters;
         std::string include_tags;
         std::string exclude_tags;
 
-        inline std::unique_ptr<test_suite_result> run() const {
+        inline test_suite_result run() const {
             return run(detail::test_registry::instance().tests);
         }
 
-        inline std::unique_ptr<test_suite_result> run(
+        inline test_suite_result run(
             std::vector<test> const& tests
         ) const {
             auto const time_start_all = detail::time_now();
 
-            auto res = std::unique_ptr<test_suite_result>(new test_suite_result());
+            detail::eval_context eval;
 
             auto const incl_tags = detail::parse_tags(include_tags);
             auto const excl_tags = detail::parse_tags(exclude_tags);
 
             for(auto&& test : tests) {
-                ++res->test_cases;
+                ++eval.test_cases;
 
                 if(detail::skip_test(test.tags, incl_tags, excl_tags)) {
-                    ++res->test_cases_skipped;
+                    ++eval.test_cases_skipped;
                     continue;
                 }
 
@@ -47,22 +50,22 @@ namespace cute {
                 auto const time_start = detail::time_now();
 
                 try {
-                    auto const count_start = res->checks_performed.load();
+                    auto const count_start = eval.checks_performed.load();
 
-                    --res->checks_performed; // decr by one since CUTE_DETAIL_ASSERT() below will increment it again
+                    --eval.checks_performed; // decr by one since CUTE_DETAIL_ASSERT() below will increment it again
                     CUTE_DETAIL_ASSERT(((void)test.test_case(), true), test.file, test.line, "", cute::captures(), cute::captures());
 
-                    auto const count_end = res->checks_performed.load();
+                    auto const count_end = eval.checks_performed.load();
                     if(count_start == count_end) {
                         throw cute::detail::exception("no check performed in test case", test.file, test.line, "");
                     }
 
                     // ensure that the temp folder can be cleared and that no file locks exists after the test case
-                    if(!res->delete_temp_folder()) {
+                    if(!eval.delete_temp_folder()) {
                         throw cute::detail::exception("could not cleanup temp folder", test.file, test.line, "");
                     }
 
-                    ++res->test_cases_passed;
+                    ++eval.test_cases_passed;
                 } catch(detail::exception const& ex) {
                     rep.pass    = false;
                     rep.file    = ex.file;
@@ -75,9 +78,9 @@ namespace cute {
                     }
 
                     // ensure that the temp folder gets also cleared even in case of a test failure
-                    res->delete_temp_folder();
+                    eval.delete_temp_folder();
 
-                    ++res->test_cases_failed;
+                    ++eval.test_cases_failed;
                 }
 
                 auto const time_end = detail::time_now();
@@ -89,9 +92,9 @@ namespace cute {
             }
 
             auto const time_end_all = detail::time_now();
-            res->duration_ms = detail::time_diff_ms(time_start_all, time_end_all);
+            eval.duration_ms = detail::time_diff_ms(time_start_all, time_end_all);
 
-            return res;
+            return eval.result();
         }
 
     };
