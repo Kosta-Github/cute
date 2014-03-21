@@ -24,6 +24,11 @@ CUTE_TEST("the temp folder should be deleted after a test case", "pass") {
     CUTE_ASSERT(true);
 }
 
+
+// since deleting a still open file behaves differently on Windows (deletion fails) than on
+// Linux/OSX (deletion succeeds, the file will not be visible anymore and gets fully deleted
+// once the last file pointer on it gets destroyed) this test is only performed on Windows systems
+#if defined(WIN32)
 CUTE_TEST("a test should fail if the temp folder could not be deleted afterwards", "fail") {
     auto folder = cute::temp_folder();
 
@@ -35,3 +40,4 @@ CUTE_TEST("a test should fail if the temp folder could not be deleted afterwards
     // we cannot have a test case without an actual check/assert in it => add a dummy check
     CUTE_ASSERT(true);
 }
+#endif // defined(WIN32)
