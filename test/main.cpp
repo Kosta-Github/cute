@@ -4,7 +4,7 @@
 //
 
 #include "../cute/cute.hpp"
-#include "../cute/reporters/ide_reporter.hpp"
+#include "../cute/reporters/reporter_ide.hpp"
 
 CUTE_INIT();
 
@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
     auto pass_ctx = cute::context();
     pass_ctx.include_tags = "pass";
     pass_ctx.reporters.emplace_back([](cute::test_result const& res) {
-        cute::ide_reporter(res.pass ? std::cout : std::cerr, res);
+        cute::reporter_ide(res.pass ? std::cout : std::cerr, res);
     });
     auto pass_res = pass_ctx.run();
 
@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     fail_ctx.include_tags = "fail";
     fail_ctx.reporters.emplace_back([](cute::test_result const& res) {
         auto r = res; r.pass = !r.pass;
-        cute::ide_reporter(r.pass ? std::cout : std::cerr, r);
+        cute::reporter_ide(r.pass ? std::cout : std::cerr, r);
     });
     auto fail_res = fail_ctx.run();
 

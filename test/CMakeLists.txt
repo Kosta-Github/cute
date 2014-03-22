@@ -43,7 +43,7 @@ add_executable(
     ../cute/detail/test_registry.hpp
     ../cute/detail/utils.hpp
     ../cute/detail/utils_file.hpp
-    ../cute/reporters/ide_reporter.hpp
+    ../cute/reporters/reporter_ide.hpp
 )
      
 add_test(

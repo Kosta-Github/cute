@@ -12,7 +12,7 @@
 
 namespace cute {
 
-    inline std::ostream& ide_reporter(std::ostream& os, test_result const& res) {
+    inline std::ostream& reporter_ide(std::ostream& os, test_result const& res) {
         static std::mutex g_mutex; std::lock_guard<std::mutex> lock(g_mutex);
 
         auto header = res.file;
@@ -23,9 +23,9 @@ namespace cute {
 #endif // defined(__GNUG__)
         header += (res.pass ? "pass: " : "error: ");
 
-        os << header << res.test << " [duration: " << res.duration_ms << " ms]" << std::endl;
+        os << header << res.test << std::endl;
 
-        if(res.pass) {
+        if(!res.pass) {
             if(!res.reason.empty()) { os << header << "    reason:     "    << res.reason   << std::endl; }
             if(!res.expr.empty())   { os << header << "    expression: "    << res.expr     << std::endl; }
 
@@ -35,6 +35,8 @@ namespace cute {
                 os << std::endl;
             }
         }
+
+        os << header << "    duration:   "    << res.duration_ms << " ms" << std::endl;
 
         return os;
     }
