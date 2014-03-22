@@ -36,12 +36,12 @@ add_executable(
     ../cute/tick.hpp
     ../cute/thread.hpp
     ../cute/to_string.hpp
-    ../cute/utils.hpp
-    ../cute/utils_file.hpp
     ../cute/detail/decomposer.hpp
     ../cute/detail/eval_context.hpp
     ../cute/detail/exception.hpp
     ../cute/detail/test_registry.hpp
+    ../cute/detail/utils.hpp
+    ../cute/detail/utils_file.hpp
     ../cute/reporters/ide_reporter.hpp
 )
      

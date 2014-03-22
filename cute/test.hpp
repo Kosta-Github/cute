@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "utils.hpp"
+#include "detail/utils.hpp"
 
 #include <functional>
 

@@ -12,7 +12,7 @@
 #include "test_suite_result.hpp"
 #include "tick.hpp"
 #include "thread.hpp"
-#include "utils.hpp"
 #include "detail/decomposer.hpp"
 #include "detail/exception.hpp"
 #include "detail/test_registry.hpp"
+#include "detail/utils.hpp"
