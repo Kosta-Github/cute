@@ -31,7 +31,7 @@ namespace cute {
 
             for(auto&& c : res.captures) {
                 os << header << "    with:       " << c.name;
-                if(!c.value.empty()) { os << " => " << c.value; }
+                if(c.name != c.value) { os << " => " << c.value; }
                 os << std::endl;
             }
         }
