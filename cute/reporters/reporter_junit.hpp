@@ -54,7 +54,7 @@ namespace cute {
 
             out <<      ">" << std::endl;
             out << "      <failure ";
-            out <<        "message=\"" << xml_encode(test.reason) << "\" ";
+            out <<        "message=\"" << xml_encode(test.expr) << "\" ";
             out <<        "type=\"" << type << "\" ";
             out <<        ">" << std::endl;
             out << "at " << xml_encode(test.file) << ":" << test.line << std::endl;

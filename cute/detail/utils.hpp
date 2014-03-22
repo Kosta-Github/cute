@@ -58,7 +58,18 @@ namespace cute {
         inline std::string xml_encode(
             std::string const& str
         ) {
-            std::string res = str;
+            std::string res;
+            res.reserve(2 * str.size());
+            for(auto c : str) {
+                switch(c) {
+                    case '&':  res += "&amp;";  break;
+                    case '\"': res += "&quot;"; break;
+                    case '\'': res += "&apos;"; break;
+                    case '<':  res += "&lt;";   break;
+                    case '>':  res += "&gt;";   break;
+                    default:   res += c;        break;
+                }
+            }
             return res;
         }
         

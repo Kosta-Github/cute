@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     fail_ctx.reporters.emplace_back([&](cute::test_result const& res) {
         auto r = res; r.result = (res.result == cute::result_type::pass) ? cute::result_type::fail : cute::result_type::pass;
         cute::reporter_ide((res.result == cute::result_type::pass) ? std::cout : std::cerr, r);
-        test_results.emplace_back(r);
+        test_results.emplace_back(res);
     });
     auto fail_res = fail_ctx.run();
 
