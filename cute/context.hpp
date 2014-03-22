@@ -55,7 +55,7 @@ namespace cute {
                     continue;
                 }
 
-                auto rep = test_result(test.name, true, "", "", test.file, test.line, 0);
+                auto rep = test_result(test.name, result_type::pass, "", "", test.file, test.line, 0);
                 auto const time_start = detail::time_now();
 
                 try {
@@ -80,7 +80,7 @@ namespace cute {
 
                     ++eval.test_cases_passed;
                 } catch(detail::exception const& ex) {
-                    rep.pass    = false;
+                    rep.result  = result_type::fail;
                     rep.file    = ex.file;
                     rep.line    = ex.line;
                     rep.reason  = ex.what();
@@ -119,7 +119,7 @@ namespace cute {
             auto&& ctx = cute::detail::eval_context::current();
 
             if(auto test = ctx.current_test) {
-                auto rep = test_result(test->name, false, "std::terminate() called", "", test->file, test->line, 0);
+                auto rep = test_result(test->name, result_type::fatal, "std::terminate() called", "", test->file, test->line, 0);
 
                 for(auto&& reporter : *ctx.reporters) {
                     if(reporter) { reporter(rep); }

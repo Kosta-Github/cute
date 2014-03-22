@@ -12,15 +12,15 @@ int main(int argc, char* argv[]) {
     auto pass_ctx = cute::context();
     pass_ctx.include_tags = "pass";
     pass_ctx.reporters.emplace_back([](cute::test_result const& res) {
-        cute::reporter_ide(res.pass ? std::cout : std::cerr, res);
+        cute::reporter_ide((res.result == cute::result_type::pass) ? std::cout : std::cerr, res);
     });
     auto pass_res = pass_ctx.run();
 
     auto fail_ctx = cute::context();
     fail_ctx.include_tags = "fail";
     fail_ctx.reporters.emplace_back([](cute::test_result const& res) {
-        auto r = res; r.pass = !r.pass;
-        cute::reporter_ide(r.pass ? std::cout : std::cerr, r);
+        auto r = res; r.result = (res.result == cute::result_type::pass) ? cute::result_type::fail : cute::result_type::pass;
+        cute::reporter_ide((res.result == cute::result_type::pass) ? std::cout : std::cerr, r);
     });
     auto fail_res = fail_ctx.run();
 

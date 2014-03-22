@@ -21,11 +21,16 @@ namespace cute {
 #else // defined(__GNUG__)
         header += "(" + std::to_string(res.line) + "): ";
 #endif // defined(__GNUG__)
-        header += (res.pass ? "pass: " : "error: ");
+        switch(res.result) {
+            case result_type::pass:     header += "pass: ";  break;
+            case result_type::fail:     header += "error: "; break;
+            case result_type::fatal:    header += "fatal: "; break;
+            default:                    assert(false);
+        }
 
         os << header << res.test << std::endl;
 
-        if(!res.pass) {
+        if(res.result != result_type::pass) {
             if(!res.reason.empty()) { os << header << "    reason:     "    << res.reason   << std::endl; }
             if(!res.expr.empty())   { os << header << "    expression: "    << res.expr     << std::endl; }
 
