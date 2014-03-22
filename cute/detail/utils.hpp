@@ -54,6 +54,13 @@ namespace cute {
             
             return false;
         }
+
+        inline std::string xml_encode(
+            std::string const& str
+        ) {
+            std::string res = str;
+            return res;
+        }
         
         inline auto time_now() -> decltype(std::chrono::high_resolution_clock::now()) {
             return std::chrono::high_resolution_clock::now();

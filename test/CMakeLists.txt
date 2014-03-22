@@ -44,6 +44,7 @@ add_executable(
     ../cute/detail/utils.hpp
     ../cute/detail/utils_file.hpp
     ../cute/reporters/reporter_ide.hpp
+    ../cute/reporters/reporter_junit.hpp
 )
      
 add_test(
