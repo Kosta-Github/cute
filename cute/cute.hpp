@@ -6,47 +6,13 @@
 #pragma once
 
 #include "context.hpp"
-#include "decomposer.hpp"
-#include "exception.hpp"
 #include "macros.hpp"
 #include "test.hpp"
-#include "test_registry.hpp"
 #include "test_result.hpp"
 #include "test_suite_result.hpp"
 #include "tick.hpp"
 #include "thread.hpp"
 #include "utils.hpp"
-
-#include <iostream>
-#include <mutex>
-
-namespace cute {
-
-    inline std::ostream& command_line_reporter(std::ostream& os, test_result const& res) {
-        static std::mutex g_mutex; std::lock_guard<std::mutex> lock(g_mutex);
-
-        auto header = res.file;
-#if defined(__GNUG__)
-        header += ":" + std::to_string(res.line) + ": ";
-#else // defined(__GNUG__)
-        header += "(" + std::to_string(res.line) + "): ";
-#endif // defined(__GNUG__)
-        header += (res.pass ? "pass: " : "error: ");
-
-        os << header << res.test << " [duration: " << res.duration_ms << " ms]" << std::endl;
-
-        if(res.pass) {
-            if(!res.reason.empty()) { os << header << "    reason:     "    << res.reason   << std::endl; }
-            if(!res.expr.empty())   { os << header << "    expression: "    << res.expr     << std::endl; }
-
-            for(auto&& c : res.captures) {
-                os << header << "    with:       " << c.name;
-                if(!c.value.empty()) { os << " => " << c.value; }
-                os << std::endl;
-            }
-        }
-
-        return os;
-    }
-
-} // namespace cute
+#include "detail/decomposer.hpp"
+#include "detail/exception.hpp"
+#include "detail/test_registry.hpp"

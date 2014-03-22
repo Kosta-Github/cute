@@ -6,10 +6,10 @@
 #pragma once
 
 #include "exception.hpp"
-#include "test.hpp"
-#include "test_result.hpp"
-#include "test_suite_result.hpp"
-#include "utils_file.hpp"
+#include "../test.hpp"
+#include "../test_result.hpp"
+#include "../test_suite_result.hpp"
+#include "../utils_file.hpp"
 
 #include <vector>
 

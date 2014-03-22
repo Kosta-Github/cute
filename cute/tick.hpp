@@ -6,6 +6,7 @@
 #pragma once
 
 #include "macros.hpp"
+#include "detail/decomposer.hpp"
 
 #include <thread>
 

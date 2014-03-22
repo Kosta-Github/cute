@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "capture.hpp"
+#include "../capture.hpp"
 
 #include <stdexcept>
 #include <string>

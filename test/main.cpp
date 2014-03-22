@@ -3,8 +3,8 @@
 // Distributed under the MIT license (See accompanying file LICENSE.txt)
 //
 
-#include "../cute/context.hpp"
 #include "../cute/cute.hpp"
+#include "../cute/reporters/ide_reporter.hpp"
 
 CUTE_INIT();
 
@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
     auto pass_ctx = cute::context();
     pass_ctx.include_tags = "pass";
     pass_ctx.reporters.emplace_back([](cute::test_result const& res) {
-        cute::command_line_reporter(res.pass ? std::cout : std::cerr, res);
+        cute::ide_reporter(res.pass ? std::cout : std::cerr, res);
     });
     auto pass_res = pass_ctx.run();
 
@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     fail_ctx.include_tags = "fail";
     fail_ctx.reporters.emplace_back([](cute::test_result const& res) {
         auto r = res; r.pass = !r.pass;
-        cute::command_line_reporter(r.pass ? std::cout : std::cerr, r);
+        cute::ide_reporter(r.pass ? std::cout : std::cerr, r);
     });
     auto fail_res = fail_ctx.run();
 

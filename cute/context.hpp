@@ -6,13 +6,13 @@
 #pragma once
 
 #include "cleanup_guard.hpp"
-#include "eval_context.hpp"
-#include "exception.hpp"
 #include "macros.hpp"
 #include "test.hpp"
-#include "test_registry.hpp"
 #include "test_result.hpp"
 #include "test_suite_result.hpp"
+#include "detail/eval_context.hpp"
+#include "detail/exception.hpp"
+#include "detail/test_registry.hpp"
 
 #include <cstdlib>
 

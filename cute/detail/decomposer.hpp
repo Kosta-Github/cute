@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "to_string.hpp"
+#include "../to_string.hpp"
 
 namespace cute {
     namespace detail {

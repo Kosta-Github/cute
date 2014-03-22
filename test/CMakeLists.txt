@@ -29,12 +29,8 @@ add_executable(
     ../cute/cleanup_guard.hpp
     ../cute/context.hpp
     ../cute/cute.hpp
-    ../cute/decomposer.hpp
-    ../cute/eval_context.hpp
-    ../cute/exception.hpp
     ../cute/macros.hpp
     ../cute/test.hpp
-    ../cute/test_registry.hpp
     ../cute/test_result.hpp
     ../cute/test_suite_result.hpp
     ../cute/tick.hpp
@@ -42,6 +38,11 @@ add_executable(
     ../cute/to_string.hpp
     ../cute/utils.hpp
     ../cute/utils_file.hpp
+    ../cute/detail/decomposer.hpp
+    ../cute/detail/eval_context.hpp
+    ../cute/detail/exception.hpp
+    ../cute/detail/test_registry.hpp
+    ../cute/reporters/ide_reporter.hpp
 )
      
 add_test(

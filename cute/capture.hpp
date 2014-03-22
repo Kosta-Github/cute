@@ -18,29 +18,42 @@ namespace cute {
     };
     
     struct captures {
+        inline captures() { }
+
         inline captures(
+            capture cap0_,
             capture cap1_ = capture(),
             capture cap2_ = capture(),
             capture cap3_ = capture(),
             capture cap4_ = capture(),
-            capture cap5_ = capture()
+            capture cap5_ = capture(),
+            capture cap6_ = capture(),
+            capture cap7_ = capture(),
+            capture cap8_ = capture(),
+            capture cap9_ = capture()
         ) {
-            if(!cap1_.name.empty()) { list.emplace_back(std::move(cap1_)); }
-            if(!cap2_.name.empty()) { list.emplace_back(std::move(cap2_)); }
-            if(!cap3_.name.empty()) { list.emplace_back(std::move(cap3_)); }
-            if(!cap4_.name.empty()) { list.emplace_back(std::move(cap4_)); }
-            if(!cap5_.name.empty()) { list.emplace_back(std::move(cap5_)); }
+            add(std::move(cap0_));
+            add(std::move(cap1_));
+            add(std::move(cap2_));
+            add(std::move(cap3_));
+            add(std::move(cap4_));
+            add(std::move(cap5_));
+            add(std::move(cap6_));
+            add(std::move(cap7_));
+            add(std::move(cap8_));
+            add(std::move(cap9_));
         }
-        
+
         inline captures(
-            captures caps1_,
-            captures caps2_
-        ) :
-            list(std::move(caps1_.list))
-        {
-            for(auto&& c : caps2_.list) {
-                list.emplace_back(std::move(c));
-            }
+            captures caps0_,
+            captures caps1_
+        ) {
+            for(auto&& c : caps0_.list) { add(std::move(c)); }
+            for(auto&& c : caps1_.list) { add(std::move(c)); }
+        }
+
+        inline void add(capture cap) {
+            if(!cap.name.empty()) { list.emplace_back(std::move(cap)); }
         }
         
         std::vector<capture> list;
