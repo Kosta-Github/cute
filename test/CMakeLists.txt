@@ -39,6 +39,7 @@ add_executable(
     ../cute/detail/decomposer.hpp
     ../cute/detail/eval_context.hpp
     ../cute/detail/exception.hpp
+    ../cute/detail/macros_impl.hpp
     ../cute/detail/test_registry.hpp
     ../cute/detail/utils.hpp
     ../cute/detail/utils_file.hpp
