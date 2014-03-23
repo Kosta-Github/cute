@@ -59,12 +59,12 @@ namespace cute {
                 }
                 case result_type::fail:
                 case result_type::fatal: {
-                    for(auto&& ex : test.exceptions) {
+                    if(auto ex = test.excp.get()) {
                         out << "      <error ";
                         out <<        "type=\"" << type << "\" ";
-                        out <<        "message=\"" << xml_encode(ex.what()) << "\" ";
+                        out <<        "message=\"" << xml_encode(ex->what()) << "\" ";
                         out <<        ">" << std::endl;
-                        out << "at " << xml_encode(ex.file) << ":" << ex.line << std::endl;
+                        out << "at " << xml_encode(ex->file) << ":" << ex->line << std::endl;
                         out << "      </error>" << std::endl;
                     }
                     break;

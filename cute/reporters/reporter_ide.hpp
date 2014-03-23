@@ -44,13 +44,13 @@ namespace cute {
             os << test_header << "    duration:   " << res.duration_ms << " ms" << std::endl;
         }
 
-        for(auto&& ex : res.exceptions) {
-            auto ex_header = detail::ide_make_file_line_string(ex.file, ex.line) + type;
+        if(auto ex = res.excp.get()) {
+            auto ex_header = detail::ide_make_file_line_string(ex->file, ex->line) + type;
 
-            os << ex_header << "    reason:     " << ex.what() << std::endl;
-            if(!ex.expr.empty()) { os << ex_header << "    expression: " << ex.expr << std::endl; }
+            os << ex_header << "    reason:     " << ex->what() << std::endl;
+            if(!ex->expr.empty()) { os << ex_header << "    expression: " << ex->expr << std::endl; }
 
-            for(auto&& c : ex.captures.list) {
+            for(auto&& c : ex->captures.list) {
                 os << ex_header << "    with:       " << c.name;
                 if(c.name != c.value) { os << " => " << c.value; }
                 os << std::endl;

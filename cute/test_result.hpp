@@ -24,7 +24,7 @@ namespace cute {
 
         result_type result;
         std::size_t duration_ms;
-        std::vector<exception> exceptions;
+        std::shared_ptr<exception const> excp;
 
         inline test_result(
             cute::test test_,

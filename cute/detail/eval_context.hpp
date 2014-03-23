@@ -38,12 +38,16 @@ namespace cute {
             std::size_t duration_ms;
 
             std::mutex exceptions_mutex;
-            std::vector<exception> exceptions;
-            inline void add_exception(exception ex, bool throw_exception = true) {
+            std::shared_ptr<exception> excp;
+            inline void register_exception(exception ex, bool throw_exception = true) {
                 std::lock_guard<std::mutex> lock(exceptions_mutex);
-                exceptions.emplace_back(std::move(ex));
+                if(excp) {
+                    if(throw_exception) { throw ex; }
+                    return;
+                }
+                excp = std::make_shared<exception>(std::move(ex));
                 if(throw_exception) {
-                    throw exceptions.back();
+                    throw *excp;
                 }
             }
 

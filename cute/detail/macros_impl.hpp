@@ -13,16 +13,16 @@
     try {                                                                                                                                       \
         ++cute::detail::eval_context::current().checks_performed;                                                                               \
         if(!(EXPR_EVAL)) {                                                                                                                      \
-            cute::detail::eval_context::current().add_exception(cute::exception(EXPR_TEXT, FILE, LINE, "", CAPS1, CAP2));                       \
+            cute::detail::eval_context::current().register_exception(cute::exception(EXPR_TEXT, FILE, LINE, "", CAPS1, CAP2));                  \
         }                                                                                                                                       \
     } catch(cute::exception const& ex) {                                                                                                        \
-        cute::detail::eval_context::current().add_exception(ex);                                                                                \
+        cute::detail::eval_context::current().register_exception(ex);                                                                           \
     } catch(std::exception const &ex) {                                                                                                         \
-        cute::detail::eval_context::current().add_exception(                                                                                    \
+        cute::detail::eval_context::current().register_exception(                                                                               \
             cute::exception("got an unexpected exception with message \"" + std::string(ex.what()) + "\"", FILE, LINE, EXPR_TEXT, CAPS1, CAP2)  \
         );                                                                                                                                      \
     } catch(...) {                                                                                                                              \
-        cute::detail::eval_context::current().add_exception(                                                                                    \
+        cute::detail::eval_context::current().register_exception(                                                                               \
             cute::exception("got an unexpected exception of unknown type", FILE, LINE, EXPR_TEXT, CAPS1, CAP2)                                  \
         );                                                                                                                                      \
     }
@@ -38,7 +38,7 @@
         } catch(...) {                                                                                                  \
         }                                                                                                               \
         if(!CUTE_DETAIL_UNIQUE_NAME(exception_ok)) {                                                                    \
-            cute::detail::eval_context::current().add_exception(                                                        \
+            cute::detail::eval_context::current().register_exception(                                                   \
                 cute::exception("didn't get an expected exception of type \"" #EXCEPT "\"", __FILE__, __LINE__, #EXPR)  \
             );                                                                                                          \
         }                                                                                                               \

@@ -65,19 +65,19 @@ namespace cute {
 
                         auto const count_end = eval.checks_performed.load();
                         if(count_start == count_end) {
-                            eval.add_exception(cute::exception("no check performed in test case", test.file, test.line, ""));
+                            eval.register_exception(cute::exception("no check performed in test case", test.file, test.line, ""));
                         }
 
                         // ensure that the temp folder can be cleared and that no file locks exists after the test case
                         if(!eval.delete_temp_folder()) {
-                            eval.add_exception(cute::exception("could not cleanup temp folder", test.file, test.line, ""));
+                            eval.register_exception(cute::exception("could not cleanup temp folder", test.file, test.line, ""));
                         }
                     } catch(cute::exception const& ex) {
                         // nothing to do here anymore
                     } catch(std::exception const& ex) {
-                        eval.add_exception(cute::exception("unexpected exception", test.file, test.line, ex.what()), false);
+                        eval.register_exception(cute::exception("unexpected exception", test.file, test.line, ex.what()), false);
                     } catch(...) {
-                        eval.add_exception(cute::exception("unexpected exception", test.file, test.line, ""), false);
+                        eval.register_exception(cute::exception("unexpected exception", test.file, test.line, ""), false);
                     }
 
                     // ensure that the temp folder gets also cleared even in case of a test failure
@@ -86,9 +86,9 @@ namespace cute {
                     auto const time_end = detail::time_now();
                     rep.duration_ms = detail::time_diff_ms(time_start, time_end);
 
-                    if(!eval.exceptions.empty()) {
+                    if(eval.excp) {
                         rep.result = result_type::fail;
-                        rep.exceptions = std::move(eval.exceptions);
+                        rep.excp = std::move(eval.excp);
                     }
                 }
 
@@ -113,7 +113,7 @@ namespace cute {
 
             if(auto test = ctx.current_test) {
                 auto rep = test_result(*test, result_type::fatal);
-                rep.exceptions.emplace_back("std::terminate() called", test->file, test->line, "");
+                rep.excp = std::make_shared<exception>("std::terminate() called", test->file, test->line, "");
 
                 for(auto&& reporter : *ctx.reporters) {
                     if(reporter) { reporter(rep); }
