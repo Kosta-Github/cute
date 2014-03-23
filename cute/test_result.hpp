@@ -14,6 +14,7 @@ namespace cute {
 
     enum class result_type {
         pass,
+        skip,
         fail,
         fatal
     };

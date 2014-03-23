@@ -40,31 +40,39 @@ namespace cute {
             out <<      "classname=\"" << xml_encode(name) << "\" ";
             out <<      "name=\"" << xml_encode(test.test.name) << "\" ";
             out <<      "time=\"" << (test.duration_ms / 1000.0f) << "\" ";
-
-            if(test.result == result_type::pass) {
-                out <<      "/>" << std::endl;
-                return;
-            }
+            out <<      ">" << std::endl;
 
             std::string type;
             switch(test.result) {
-                case result_type::pass:     assert(false); // already handled above
+                case result_type::pass:     type = "pass";  break;
+                case result_type::skip:     type = "skip";  break;
                 case result_type::fail:     type = "fail";  break;
                 case result_type::fatal:    type = "fatal"; break;
                 default:                    assert(false);
             }
 
-            out <<      ">" << std::endl;
-
-            for(auto&& ex : test.exceptions) {
-                out << "      <error ";
-                out <<        "type=\"" << type << "\" ";
-                out <<        "message=\"" << xml_encode(ex.expr) << "\" ";
-                out <<        ">" << std::endl;
-                out << "at " << xml_encode(ex.file) << ":" << ex.line << std::endl;
-                out << "      </error>" << std::endl;
-                out << "    </testcase>" << std::endl;
+            switch(test.result) {
+                case result_type::pass:     break;
+                case result_type::skip: {
+                    out << "      <skipped/>" << std::endl;
+                    break;
+                }
+                case result_type::fail:
+                case result_type::fatal: {
+                    for(auto&& ex : test.exceptions) {
+                        out << "      <error ";
+                        out <<        "type=\"" << type << "\" ";
+                        out <<        "message=\"" << xml_encode(ex.what()) << "\" ";
+                        out <<        ">" << std::endl;
+                        out << "at " << xml_encode(ex.file) << ":" << ex.line << std::endl;
+                        out << "      </error>" << std::endl;
+                    }
+                    break;
+                }
+                default: assert(false);
             }
+
+            out << "    </testcase>" << std::endl;
         }
 
         inline void junit_write_lead_out(

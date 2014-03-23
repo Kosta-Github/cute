@@ -5,9 +5,9 @@ Feature set:
 - no external dependencies
 - header-only
 - thread-safe
-- provides capabilities for mocking classes and interfaces
-- can use custom reporters
 - supports tags for test case filtering
+- can use custom reporters (provided: simple ide/console reporter, JUnit XML reporter)
+- provides capabilities for mocking classes and interfaces (planned)
 
 status: alpha
 =============
@@ -22,4 +22,4 @@ Based on the following ideas and frameworks:
 
 dependencies
 ============
-- [cmake](http://cmake.org/) (only required for building and executing the unit test suite)
+- [cmake](http://cmake.org/) (only required for building and executing the self-test unit test suite)

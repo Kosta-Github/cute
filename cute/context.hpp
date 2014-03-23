@@ -48,60 +48,55 @@ namespace cute {
 
             for(auto&& test : tests) {
                 eval.current_test = &test;
-                ++eval.test_cases;
+
+                auto skip = detail::skip_test(test.tags, incl_tags, excl_tags);
 
                 auto rep = test_result(test);
+                rep.result = (skip ? result_type::skip : result_type::pass);
 
-                if(detail::skip_test(test.tags, incl_tags, excl_tags)) {
-                    ++eval.test_cases_skipped;
-                    // rep.result = result_type::skip;
-                    // eval.test_results.emplace_back(rep);
-                    continue;
-                }
+                if(!skip) {
+                    auto const time_start = detail::time_now();
 
-                auto const time_start = detail::time_now();
+                    try {
+                        auto const count_start = eval.checks_performed.load();
 
-                try {
-                    auto const count_start = eval.checks_performed.load();
+                        --eval.checks_performed; // decr by one since CUTE_DETAIL_ASSERT() below will increment it again
+                        CUTE_DETAIL_ASSERT((static_cast<void>(test.test_case()), true), test.file, test.line, "", cute::captures(), cute::captures());
 
-                    --eval.checks_performed; // decr by one since CUTE_DETAIL_ASSERT() below will increment it again
-                    CUTE_DETAIL_ASSERT(((void)test.test_case(), true), test.file, test.line, "", cute::captures(), cute::captures());
+                        auto const count_end = eval.checks_performed.load();
+                        if(count_start == count_end) {
+                            eval.add_exception(cute::exception("no check performed in test case", test.file, test.line, ""));
+                        }
 
-                    auto const count_end = eval.checks_performed.load();
-                    if(count_start == count_end) {
-                        throw cute::exception("no check performed in test case", test.file, test.line, "");
+                        // ensure that the temp folder can be cleared and that no file locks exists after the test case
+                        if(!eval.delete_temp_folder()) {
+                            eval.add_exception(cute::exception("could not cleanup temp folder", test.file, test.line, ""));
+                        }
+                    } catch(cute::exception const& ex) {
+                        // nothing to do here anymore
+                    } catch(std::exception const& ex) {
+                        eval.add_exception(cute::exception("unexpected exception", test.file, test.line, ex.what()), false);
+                    } catch(...) {
+                        eval.add_exception(cute::exception("unexpected exception", test.file, test.line, ""), false);
                     }
-
-                    // ensure that the temp folder can be cleared and that no file locks exists after the test case
-                    if(!eval.delete_temp_folder()) {
-                        throw cute::exception("could not cleanup temp folder", test.file, test.line, "");
-                    }
-
-                    if(!eval.exceptions.empty()) {
-                        throw eval.exceptions.front();
-                    }
-
-                    ++eval.test_cases_passed;
-                } catch(cute::exception const& ex) {
-                    rep.result  = result_type::fail;
-                    rep.exceptions.emplace_back(ex);
 
                     // ensure that the temp folder gets also cleared even in case of a test failure
                     eval.delete_temp_folder();
 
-                    ++eval.test_cases_failed;
-                }
+                    auto const time_end = detail::time_now();
+                    rep.duration_ms = detail::time_diff_ms(time_start, time_end);
 
-                auto const time_end = detail::time_now();
-                rep.duration_ms = detail::time_diff_ms(time_start, time_end);
+                    if(!eval.exceptions.empty()) {
+                        rep.result = result_type::fail;
+                        rep.exceptions = std::move(eval.exceptions);
+                    }
+                }
 
                 eval.test_results.emplace_back(rep);
 
                 for(auto&& reporter : reporters) {
                     if(reporter) { reporter(rep); }
                 }
-
-                eval.exceptions.clear();
             }
 
             eval.current_test = nullptr;

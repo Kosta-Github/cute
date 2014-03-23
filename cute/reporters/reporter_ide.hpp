@@ -31,6 +31,7 @@ namespace cute {
         auto type = std::string();
         switch(res.result) {
             case result_type::pass:     type = "pass: ";  break;
+            case result_type::skip:     type = "skip: ";  break;
             case result_type::fail:     type = "error: "; break;
             case result_type::fatal:    type = "fatal: "; break;
             default:                    assert(false);
@@ -39,22 +40,22 @@ namespace cute {
         auto test_header = detail::ide_make_file_line_string(res.test.file, res.test.line) + type;
         os << test_header << res.test.name << std::endl;
 
-        if(res.result != result_type::pass) {
-            for(auto&& ex : res.exceptions) {
-                auto ex_header = detail::ide_make_file_line_string(ex.file, ex.line) + type;
-
-                os << ex_header << "    reason:     " << ex.what() << std::endl;
-                if(!ex.expr.empty()) { os << ex_header << "    expression: " << ex.expr << std::endl; }
-
-                for(auto&& c : ex.captures.list) {
-                    os << ex_header << "    with:       " << c.name;
-                    if(c.name != c.value) { os << " => " << c.value; }
-                    os << std::endl;
-                }
-            }
+        if(res.result != result_type::skip) {
+            os << test_header << "    duration:   " << res.duration_ms << " ms" << std::endl;
         }
 
-        os << test_header << "    duration:   " << res.duration_ms << " ms" << std::endl;
+        for(auto&& ex : res.exceptions) {
+            auto ex_header = detail::ide_make_file_line_string(ex.file, ex.line) + type;
+
+            os << ex_header << "    reason:     " << ex.what() << std::endl;
+            if(!ex.expr.empty()) { os << ex_header << "    expression: " << ex.expr << std::endl; }
+
+            for(auto&& c : ex.captures.list) {
+                os << ex_header << "    with:       " << c.name;
+                if(c.name != c.value) { os << " => " << c.value; }
+                os << std::endl;
+            }
+        }
     }
 
 } // namespace cute

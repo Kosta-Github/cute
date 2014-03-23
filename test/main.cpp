@@ -15,25 +15,32 @@ int main(int argc, char* argv[]) {
     auto pass_ctx = cute::context();
     pass_ctx.include_tags = "pass";
     pass_ctx.reporters.emplace_back([&](cute::test_result const& res) {
-        cute::reporter_ide((res.result == cute::result_type::pass) ? std::cout : std::cerr, res);
+        cute::reporter_ide(std::cout, res);
     });
     auto pass_res = pass_ctx.run();
 
     auto fail_ctx = cute::context();
     fail_ctx.include_tags = "fail";
     fail_ctx.reporters.emplace_back([&](cute::test_result const& res) {
-        auto r = res; r.result = (res.result == cute::result_type::pass) ? cute::result_type::fail : cute::result_type::pass;
-        cute::reporter_ide((res.result == cute::result_type::pass) ? std::cout : std::cerr, r);
+        auto r = res;
+        switch(r.result) {
+            case cute::result_type::pass:   r.result = cute::result_type::fail; break;
+            case cute::result_type::skip:   break;
+            case cute::result_type::fail:   r.result = cute::result_type::pass; break;
+            case cute::result_type::fatal:  break;
+            default:                        assert(false);
+        }
+        cute::reporter_ide(std::cout, r);
     });
     auto fail_res = fail_ctx.run();
 
     // for this unit test in which we check the correct behavior for
     // passing and failing test cases we need to combine both results
     // by inverting the "failed" cases...
-    auto tests_all          = pass_res.test_cases;
+    auto tests_all          = pass_res.test_results.size();
     auto tests_passed       = pass_res.test_cases_passed   + fail_res.test_cases_failed;
-    auto tests_failed       = pass_res.test_cases_failed   + fail_res.test_cases_passed;
     auto tests_skipped      = pass_res.test_cases_skipped  + fail_res.test_cases_skipped - tests_all;
+    auto tests_failed       = pass_res.test_cases_failed   + fail_res.test_cases_passed;
     auto checks_performed   = pass_res.checks_performed    + fail_res.checks_performed;
     auto duration_ms        = pass_res.duration_ms         + fail_res.duration_ms;
 
@@ -44,8 +51,8 @@ int main(int argc, char* argv[]) {
     out << std::endl;
     out << "test summary:" << std::endl;
     out << tests_passed     << " out of " << tests_all << " tests passed."  << std::endl;
-    out << tests_failed     << " out of " << tests_all << " tests failed."  << std::endl;
     out << tests_skipped    << " out of " << tests_all << " tests skipped." << std::endl;
+    out << tests_failed     << " out of " << tests_all << " tests failed."  << std::endl;
     out << checks_performed << " checks performed."                         << std::endl;
     out << duration_ms      << " ms used for the whole test suite."         << std::endl;
 

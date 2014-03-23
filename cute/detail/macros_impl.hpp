@@ -13,7 +13,7 @@
     try {                                                                                                                                       \
         ++cute::detail::eval_context::current().checks_performed;                                                                               \
         if(!(EXPR_EVAL)) {                                                                                                                      \
-            cute::detail::eval_context::current().add_exception(cute::exception("", FILE, LINE, EXPR_TEXT, CAPS1, CAP2));                       \
+            cute::detail::eval_context::current().add_exception(cute::exception(EXPR_TEXT, FILE, LINE, "", CAPS1, CAP2));                       \
         }                                                                                                                                       \
     } catch(cute::exception const& ex) {                                                                                                        \
         cute::detail::eval_context::current().add_exception(ex);                                                                                \
