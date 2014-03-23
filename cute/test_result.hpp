@@ -8,7 +8,7 @@
 #include "capture.hpp"
 
 #include <string>
-#include <vector>
+#include <memory>
 
 namespace cute {
 
