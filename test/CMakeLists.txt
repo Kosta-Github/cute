@@ -25,6 +25,7 @@ add_executable(
     cute_core_unittests.cpp
     cute_file_unittests.cpp
     cute_thread_unittests.cpp
+    cute_xml_unittests.cpp
     ../cute/capture.hpp
     ../cute/cleanup_guard.hpp
     ../cute/context.hpp
