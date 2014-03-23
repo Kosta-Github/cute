@@ -7,14 +7,11 @@
 
 #include "../test_result.hpp"
 
-#include <iostream>
-#include <mutex>
+#include <ostream>
 
 namespace cute {
 
-    inline std::ostream& reporter_ide(std::ostream& os, test_result const& res) {
-        static std::mutex g_mutex; std::lock_guard<std::mutex> lock(g_mutex);
-
+    inline void reporter_ide(std::ostream& os, test_result const& res) {
         auto header = res.file;
 #if defined(__GNUG__)
         header += ":" + std::to_string(res.line) + ": ";
@@ -42,8 +39,6 @@ namespace cute {
         }
 
         os << header << "    duration:   "    << res.duration_ms << " ms" << std::endl;
-
-        return os;
     }
 
 } // namespace cute

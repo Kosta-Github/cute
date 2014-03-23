@@ -7,7 +7,6 @@
 
 #include "capture.hpp"
 
-#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -27,7 +26,7 @@ namespace cute {
         std::vector<capture> captures;
         std::string file;
         int line;
-        std::int64_t duration_ms;
+        std::size_t duration_ms;
 
         inline test_result(
             std::string test_ = "", result_type result_ = result_type::pass, std::string reason_ = "", std::string expr_ = "",

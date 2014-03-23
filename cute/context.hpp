@@ -50,12 +50,15 @@ namespace cute {
                 eval.current_test = &test;
                 ++eval.test_cases;
 
+                auto rep = test_result(test.name, result_type::pass, "", "", test.file, test.line, 0);
+
                 if(detail::skip_test(test.tags, incl_tags, excl_tags)) {
                     ++eval.test_cases_skipped;
+                    // rep.result = result_type::skip;
+                    // eval.test_results.emplace_back(rep);
                     continue;
                 }
 
-                auto rep = test_result(test.name, result_type::pass, "", "", test.file, test.line, 0);
                 auto const time_start = detail::time_now();
 
                 try {
@@ -98,6 +101,8 @@ namespace cute {
 
                 auto const time_end = detail::time_now();
                 rep.duration_ms = detail::time_diff_ms(time_start, time_end);
+
+                eval.test_results.emplace_back(rep);
 
                 for(auto&& reporter : reporters) {
                     if(reporter) { reporter(rep); }

@@ -78,9 +78,9 @@ namespace cute {
         }
 
         template<typename T>
-        inline std::int64_t time_diff_ms(T&& start, T&& end) {
+        inline std::size_t time_diff_ms(T&& start, T&& end) {
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-            return static_cast<std::int64_t>(diff);
+            return static_cast<std::size_t>(diff);
         }
 
     } // namespace detail

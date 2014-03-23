@@ -69,8 +69,13 @@ namespace cute {
                 return res;
             }
 
-            inline test_suite_result result() const {
-                return test_suite_result(test_cases, test_cases_passed, test_cases_failed, test_cases_skipped, checks_performed, duration_ms);
+            std::vector<test_result> test_results;
+
+            inline test_suite_result result() {
+                return test_suite_result(
+                    test_cases, test_cases_passed, test_cases_failed, test_cases_skipped,
+                    checks_performed, duration_ms, std::move(test_results)
+                );
             }
 
             static eval_context* g_current;

@@ -9,21 +9,19 @@
 #include "../test_suite_result.hpp"
 
 #include <ostream>
-#include <mutex>
 
 namespace cute {
     namespace detail {
 
         inline void junit_write_lead_in(
             std::ostream& out,
-            test_suite_result const& suite,
-            std::vector<test_result> const& tests
+            test_suite_result const& suite
         ) {
             out << "<testsuites>" << std::endl;
             out << "  <testsuite ";
             out <<    "errors=\"" << suite.test_cases_passed << "\" ";
             out <<    "failures=\"0\" ";
-            out <<    "tests=\"" << tests.size() << "\" ";
+            out <<    "tests=\"" << suite.test_results.size() << "\" ";
             out <<    "hostname=\"" << xml_encode("tbd") << "\" ";
             out <<    "time=\"" << (suite.duration_ms / 1000.0f) << "\" ";
             out <<    "timestamp=\"" << xml_encode("tbd") << "\"";
@@ -73,13 +71,12 @@ namespace cute {
 
     inline std::ostream& reporter_junit(
         std::ostream& out,
-        test_suite_result const& suite,
-        std::vector<test_result> const& tests
+        test_suite_result const& suite
     ) {
-        detail::junit_write_lead_in(out, suite, tests);
+        detail::junit_write_lead_in(out, suite);
 
         // write resut for each test
-        for(auto&& test : tests) {
+        for(auto&& test : suite.test_results) {
             detail::junit_write_test(out, test);
         }
 
