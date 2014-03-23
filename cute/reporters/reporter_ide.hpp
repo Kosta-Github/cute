@@ -11,34 +11,50 @@
 
 namespace cute {
 
-    inline void reporter_ide(std::ostream& os, test_result const& res) {
-        auto header = res.file;
+    namespace detail {
+
+        inline std::string ide_make_file_line_string(
+            std::string file,
+            int line
+        ) {
 #if defined(__GNUG__)
-        header += ":" + std::to_string(res.line) + ": ";
+            file += ":" + std::to_string(line) + ": ";
 #else // defined(__GNUG__)
-        header += "(" + std::to_string(res.line) + "): ";
+            file += "(" + std::to_string(line) + "): ";
 #endif // defined(__GNUG__)
+            return file;
+        }
+
+    } // namespace detail
+
+    inline void reporter_ide(std::ostream& os, test_result const& res) {
+        auto type = std::string();
         switch(res.result) {
-            case result_type::pass:     header += "pass: ";  break;
-            case result_type::fail:     header += "error: "; break;
-            case result_type::fatal:    header += "fatal: "; break;
+            case result_type::pass:     type = "pass: ";  break;
+            case result_type::fail:     type = "error: "; break;
+            case result_type::fatal:    type = "fatal: "; break;
             default:                    assert(false);
         }
 
-        os << header << res.test << std::endl;
+        auto test_header = detail::ide_make_file_line_string(res.test.file, res.test.line) + type;
+        os << test_header << res.test.name << std::endl;
 
         if(res.result != result_type::pass) {
-            if(!res.reason.empty()) { os << header << "    reason:     "    << res.reason   << std::endl; }
-            if(!res.expr.empty())   { os << header << "    expression: "    << res.expr     << std::endl; }
+            for(auto&& ex : res.exceptions) {
+                auto ex_header = detail::ide_make_file_line_string(ex.file, ex.line) + type;
 
-            for(auto&& c : res.captures) {
-                os << header << "    with:       " << c.name;
-                if(c.name != c.value) { os << " => " << c.value; }
-                os << std::endl;
+                os << ex_header << "    reason:     " << ex.what() << std::endl;
+                if(!ex.expr.empty()) { os << ex_header << "    expression: " << ex.expr << std::endl; }
+
+                for(auto&& c : ex.captures.list) {
+                    os << ex_header << "    with:       " << c.name;
+                    if(c.name != c.value) { os << " => " << c.value; }
+                    os << std::endl;
+                }
             }
         }
 
-        os << header << "    duration:   "    << res.duration_ms << " ms" << std::endl;
+        os << test_header << "    duration:   " << res.duration_ms << " ms" << std::endl;
     }
 
 } // namespace cute

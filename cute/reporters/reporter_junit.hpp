@@ -30,7 +30,7 @@ namespace cute {
             test_result const& test
         ) {
             // extract bse filename part from full source filename
-            auto name = test.file;
+            auto name = test.test.file;
             auto pos1 = name.find_last_of("/\\");
             if(pos1 != name.npos) { name = name.substr(pos1 + 1); }
             auto pos2 = name.find_last_of(".");
@@ -38,7 +38,7 @@ namespace cute {
 
             out << "    <testcase ";
             out <<      "classname=\"" << xml_encode(name) << "\" ";
-            out <<      "name=\"" << xml_encode(test.test) << "\" ";
+            out <<      "name=\"" << xml_encode(test.test.name) << "\" ";
             out <<      "time=\"" << (test.duration_ms / 1000.0f) << "\" ";
 
             if(test.result == result_type::pass) {
@@ -55,13 +55,16 @@ namespace cute {
             }
 
             out <<      ">" << std::endl;
-            out << "      <error ";
-            out <<        "type=\"" << type << "\" ";
-            out <<        "message=\"" << xml_encode(test.expr) << "\" ";
-            out <<        ">" << std::endl;
-            out << "at " << xml_encode(test.file) << ":" << test.line << std::endl;
-            out << "      </error>" << std::endl;
-            out << "    </testcase>" << std::endl;
+
+            for(auto&& ex : test.exceptions) {
+                out << "      <error ";
+                out <<        "type=\"" << type << "\" ";
+                out <<        "message=\"" << xml_encode(ex.expr) << "\" ";
+                out <<        ">" << std::endl;
+                out << "at " << xml_encode(ex.file) << ":" << ex.line << std::endl;
+                out << "      </error>" << std::endl;
+                out << "    </testcase>" << std::endl;
+            }
         }
 
         inline void junit_write_lead_out(

@@ -19,21 +19,20 @@ namespace cute {
     };
 
     struct test_result {
-        std::string test;
+        cute::test const test;
+
         result_type result;
-        std::string reason;
-        std::string expr;
-        std::vector<capture> captures;
-        std::string file;
-        int line;
         std::size_t duration_ms;
+        std::vector<exception> exceptions;
 
         inline test_result(
-            std::string test_ = "", result_type result_ = result_type::pass, std::string reason_ = "", std::string expr_ = "",
-            std::string file_ = "", int line_ = 0, std::size_t duration_ms_ = 0
+            cute::test test_,
+            result_type result_ = result_type::pass,
+            std::size_t duration_ms_ = 0
         ) :
-            test(std::move(test_)), result(std::move(result_)), reason(std::move(reason_)), expr(std::move(expr)),
-            file(std::move(file_)), line(std::move(line_)), duration_ms(std::move(duration_ms_))
+            test(std::move(test_)),
+            result(std::move(result_)),
+            duration_ms(std::move(duration_ms_))
         { }
     };
 
