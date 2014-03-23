@@ -6,12 +6,12 @@
 #pragma once
 
 #include "cleanup_guard.hpp"
+#include "exception.hpp"
 #include "macros.hpp"
 #include "test.hpp"
 #include "test_result.hpp"
 #include "test_suite_result.hpp"
 #include "detail/eval_context.hpp"
-#include "detail/exception.hpp"
 #include "detail/test_registry.hpp"
 
 #include <cstdlib>
@@ -69,12 +69,12 @@ namespace cute {
 
                     auto const count_end = eval.checks_performed.load();
                     if(count_start == count_end) {
-                        throw cute::detail::exception("no check performed in test case", test.file, test.line, "");
+                        throw cute::exception("no check performed in test case", test.file, test.line, "");
                     }
 
                     // ensure that the temp folder can be cleared and that no file locks exists after the test case
                     if(!eval.delete_temp_folder()) {
-                        throw cute::detail::exception("could not cleanup temp folder", test.file, test.line, "");
+                        throw cute::exception("could not cleanup temp folder", test.file, test.line, "");
                     }
 
                     if(!eval.exceptions.empty()) {
@@ -82,7 +82,7 @@ namespace cute {
                     }
 
                     ++eval.test_cases_passed;
-                } catch(detail::exception const& ex) {
+                } catch(cute::exception const& ex) {
                     rep.result  = result_type::fail;
                     rep.file    = ex.file;
                     rep.line    = ex.line;

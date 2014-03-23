@@ -20,11 +20,8 @@ namespace cute {
             out << "<testsuites>" << std::endl;
             out << "  <testsuite ";
             out <<    "errors=\"" << suite.test_cases_passed << "\" ";
-            out <<    "failures=\"0\" ";
             out <<    "tests=\"" << suite.test_results.size() << "\" ";
-            out <<    "hostname=\"" << xml_encode("tbd") << "\" ";
             out <<    "time=\"" << (suite.duration_ms / 1000.0f) << "\" ";
-            out <<    "timestamp=\"" << xml_encode("tbd") << "\"";
             out << ">" << std::endl;
         }
 
@@ -32,10 +29,17 @@ namespace cute {
             std::ostream& out,
             test_result const& test
         ) {
+            // extract bse filename part from full source filename
+            auto name = test.file;
+            auto pos1 = name.find_last_of("/\\");
+            if(pos1 != name.npos) { name = name.substr(pos1 + 1); }
+            auto pos2 = name.find_last_of(".");
+            name = name.substr(0, pos2);
+
             out << "    <testcase ";
-            out <<      "classname=\"" << xml_encode("global") << "\" ";
+            out <<      "classname=\"" << xml_encode(name) << "\" ";
             out <<      "name=\"" << xml_encode(test.test) << "\" ";
-            out <<      "time=\"" << (test.duration_ms / 1000.0f) << "\"";
+            out <<      "time=\"" << (test.duration_ms / 1000.0f) << "\" ";
 
             if(test.result == result_type::pass) {
                 out <<      "/>" << std::endl;
@@ -44,19 +48,19 @@ namespace cute {
 
             std::string type;
             switch(test.result) {
-                case result_type::pass:     assert(false);
+                case result_type::pass:     assert(false); // already handled above
                 case result_type::fail:     type = "fail";  break;
                 case result_type::fatal:    type = "fatal"; break;
                 default:                    assert(false);
             }
 
             out <<      ">" << std::endl;
-            out << "      <failure ";
-            out <<        "message=\"" << xml_encode(test.expr) << "\" ";
+            out << "      <error ";
             out <<        "type=\"" << type << "\" ";
+            out <<        "message=\"" << xml_encode(test.expr) << "\" ";
             out <<        ">" << std::endl;
             out << "at " << xml_encode(test.file) << ":" << test.line << std::endl;
-            out << "      </failure>" << std::endl;
+            out << "      </error>" << std::endl;
             out << "    </testcase>" << std::endl;
         }
 

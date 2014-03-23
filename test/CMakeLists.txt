@@ -30,6 +30,7 @@ add_executable(
     ../cute/cleanup_guard.hpp
     ../cute/context.hpp
     ../cute/cute.hpp
+    ../cute/exception.hpp
     ../cute/macros.hpp
     ../cute/test.hpp
     ../cute/test_result.hpp
@@ -39,7 +40,6 @@ add_executable(
     ../cute/to_string.hpp
     ../cute/detail/decomposer.hpp
     ../cute/detail/eval_context.hpp
-    ../cute/detail/exception.hpp
     ../cute/detail/macros_impl.hpp
     ../cute/detail/test_registry.hpp
     ../cute/detail/utils.hpp
