@@ -14,14 +14,14 @@ CUTE_INIT();
 int main(int argc, char* argv[]) {
     auto pass_ctx = cute::context();
     pass_ctx.include_tags = "pass";
-    pass_ctx.reporters.emplace_back([&](cute::test_result const& res) {
-        cute::reporter_ide(std::cout, res);
+    pass_ctx.reporters.emplace_back([&](cute::test_result const& res, std::size_t test_index_cur, std::size_t test_index_max) {
+        cute::reporter_ide(std::cout, res, test_index_cur, test_index_max);
     });
     auto pass_res = pass_ctx.run();
 
     auto fail_ctx = cute::context();
     fail_ctx.include_tags = "fail";
-    fail_ctx.reporters.emplace_back([&](cute::test_result const& res) {
+    fail_ctx.reporters.emplace_back([&](cute::test_result const& res, std::size_t test_index_cur, std::size_t test_index_max) {
         auto r = res;
         switch(r.result) {
             case cute::result_type::pass:   r.result = cute::result_type::fail; break;
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
             case cute::result_type::fatal:  break;
             default:                        assert(false);
         }
-        cute::reporter_ide(std::cout, r);
+        cute::reporter_ide(std::cout, r, test_index_cur, test_index_max);
     });
     auto fail_res = fail_ctx.run();
 

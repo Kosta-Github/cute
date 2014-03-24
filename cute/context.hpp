@@ -23,7 +23,7 @@ namespace cute {
     }
 
     struct context {
-        std::vector<std::function<void(test_result const& rep)>> reporters;
+        std::vector<std::function<void(test_result const& rep, std::size_t test_index_cur, std::size_t test_index_max)>> reporters;
         std::string include_tags;
         std::string exclude_tags;
 
@@ -88,11 +88,11 @@ namespace cute {
                     }
                 }
 
-                eval.test_results.emplace_back(rep);
-
                 for(auto&& reporter : reporters) {
-                    if(reporter) { reporter(rep); }
+                    if(reporter) { reporter(rep, eval.test_results.size(), tests.size()); }
                 }
+
+                eval.test_results.emplace_back(rep);
             }
 
             eval.current_test = nullptr;
@@ -112,7 +112,7 @@ namespace cute {
                 rep.excp = std::make_shared<exception>("std::terminate() called", test->file, test->line, "");
 
                 for(auto&& reporter : *ctx.reporters) {
-                    if(reporter) { reporter(rep); }
+                    if(reporter) { reporter(rep, 0, 1); }
                 }
             }
 

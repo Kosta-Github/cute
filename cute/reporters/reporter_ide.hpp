@@ -27,7 +27,12 @@ namespace cute {
 
     } // namespace detail
 
-    inline void reporter_ide(std::ostream& os, test_result const& res) {
+    inline void reporter_ide(
+        std::ostream& os,
+        test_result const& res,
+        std::size_t test_index_cur,
+        std::size_t test_index_max
+    ) {
         auto type = std::string();
         switch(res.result) {
             case result_type::pass:     type = "pass: ";  break;
@@ -38,7 +43,7 @@ namespace cute {
         }
 
         auto test_header = detail::ide_make_file_line_string(res.test.file, res.test.line) + type;
-        os << test_header << res.test.name << std::endl;
+        os << test_header << res.test.name << " [" << (test_index_cur + 1) << "/" << test_index_max << "]" << std::endl;
 
         if(res.result != result_type::skip) {
             os << test_header << "    duration:   " << res.duration_ms << " ms" << std::endl;

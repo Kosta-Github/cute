@@ -30,7 +30,7 @@ namespace cute {
                 g_current = m_previous;
             }
 
-            std::vector<std::function<void(test_result const& rep)>> const* reporters;
+            std::vector<std::function<void(test_result const& rep, std::size_t test_index_cur, std::size_t test_index_max)>> const* reporters;
 
             test const* current_test;
 
