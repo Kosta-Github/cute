@@ -72,12 +72,8 @@ namespace cute {
                         if(!eval.delete_temp_folder()) {
                             eval.register_exception(cute::exception("could not cleanup temp folder", test.file, test.line, ""));
                         }
-                    } catch(cute::exception const& ex) {
-                        // nothing to do here anymore
-                    } catch(std::exception const& ex) {
-                        eval.register_exception(cute::exception("unexpected exception", test.file, test.line, ex.what()), false);
                     } catch(...) {
-                        eval.register_exception(cute::exception("unexpected exception", test.file, test.line, ""), false);
+                        // nothing to do
                     }
 
                     // ensure that the temp folder gets also cleared even in case of a test failure
