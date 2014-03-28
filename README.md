@@ -29,7 +29,7 @@ This would produce the following output with the provided IDE reporter:
 ```
 .../cute_tests.cpp:64: error: Test two strings for equality
 .../cute_tests.cpp:64: error:     duration:   0 ms
-.../cute_tests.cpp:67: error:     reason:     str1 == str2
+.../cute_tests.cpp:67: error:     reason:     validation failed: str1 == str2
 .../cute_tests.cpp:67: error:     with:       str1 == str2 => "hello" == "world"
 ```
 
@@ -50,7 +50,7 @@ This would produce the following output with the provided IDE reporter:
 ```
 .../cute_tests.cpp:70: error: Capture additional values
 .../cute_tests.cpp:70: error:     duration:   0 ms
-.../cute_tests.cpp:79: error:     reason:     str1 == str2
+.../cute_tests.cpp:79: error:     reason:     validation failed: str1 == str2
 .../cute_tests.cpp:79: error:     with:       str1 == str2 => "hello" == "world"
 .../cute_tests.cpp:79: error:     with:       str1.size() => 5
 .../cute_tests.cpp:79: error:     with:       str2.capacity() => 22
@@ -66,6 +66,8 @@ The following macros can be used for validation within a test case:
 Each validation macro can be extended by several `CUTE_CAPTURE()` occurrences in order to capture additional values and provide more context information in case of a failure.
  
 Note that `cute` stops a test case by throwing an `exception` as soon as a violation of a `CUTE_ASSERT*()` is detected.
+
+If a `CUTE_TEST` does not trigger any validation during it's execution the test is reported as failed as well, since this usually indicates an error in test implementation.
 
 
 related work

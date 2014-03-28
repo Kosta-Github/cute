@@ -13,7 +13,9 @@
     try {                                                                                                                                               \
         ++cute::detail::eval_context::current().checks_performed;                                                                                       \
         if(!(EXPR_EVAL)) {                                                                                                                              \
-            cute::detail::eval_context::current().register_exception(cute::exception(FILE, LINE, EXPR_TEXT, "", CAPTURES1, CAPTURES2));                 \
+            cute::detail::eval_context::current().register_exception(                                                                                   \
+                cute::exception(FILE, LINE, "validation failed: " EXPR_TEXT, "", CAPTURES1, CAPTURES2)                                                  \
+            );                                                                                                                                          \
         }                                                                                                                                               \
     } catch(cute::exception const& ex) {                                                                                                                \
         cute::detail::eval_context::current().register_exception(ex);                                                                                   \
