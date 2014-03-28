@@ -12,7 +12,7 @@
 #define CUTE_DETAIL_ASSERT(EXPR_EVAL, FILE, LINE, EXPR_TEXT, CAPTURES1, CAPTURES2)                                                                      \
     try {                                                                                                                                               \
         ++cute::detail::eval_context::current().checks_performed;                                                                                       \
-        if(!(EXPR_EVAL)) {                                                                                                                              \
+        if(!static_cast<bool>(EXPR_EVAL)) {                                                                                                             \
             cute::detail::eval_context::current().register_exception(                                                                                   \
                 cute::exception(FILE, LINE, "validation failed: " EXPR_TEXT, "", CAPTURES1, CAPTURES2)                                                  \
             );                                                                                                                                          \
