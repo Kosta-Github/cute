@@ -13,6 +13,10 @@ CUTE_TEST("a failed check in a separate thread is detected", "fail") {
     auto t = cute::thread([&]() { CUTE_ASSERT(false); });
 }
 
+CUTE_TEST("an unhandled exception in a cute::thread is detected", "fail") {
+    auto t = cute::thread([&]() { throw std::runtime_error("forced exception"); });
+}
+
 CUTE_TEST("actions registered with 'at_tick()' are executed in the right order", "pass") {
     cute::tick ticker;
     std::atomic<int> value(0);

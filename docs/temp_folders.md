@@ -1,5 +1,6 @@
 Temporary output folder
 =======================
+
 Although it is best to avoid writing tests which creates files in the local filesystem, but nevertheless there are certain cases in which it could come in handy to be able to dump out some temp files into the file system during testing.
 
 `cute` supports this usage scenario by providing the function `cute::temp_folder()` which can be called from within a test case implementation. The function creates a new and empty folder and returns the path to it. This ensures that each test case have its own temp folder and does not write into a shared location, which could lead to all kinds of trouble during testing. After finishing the test case execution the created temp folder will be cleaned up automatically again.

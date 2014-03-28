@@ -1,5 +1,6 @@
 A simple test case
 ==================
+
 A very simple failing test case would look like this:
 ```C++
 CUTE_TEST("Test two strings for equality") {
@@ -19,6 +20,7 @@ This would produce the following output with the provided IDE reporter:
 
 Capturing additional values
 ===========================
+
 Capturing additional values and reporting them in case of an error can be achieved by adding some `CUTE_CAPTURE()` calls to `CUTE_ASSERT()`:
 ```C++
 CUTE_TEST("Capture additional values") {
@@ -46,6 +48,7 @@ This would produce the following output with the provided IDE reporter:
 
 Supported validation macros
 ===========================
+
 The following macros can be used for validation within a test case:
 
 macro                             | validation

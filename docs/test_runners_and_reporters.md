@@ -1,5 +1,6 @@
 Simple IDE reporter
 ===================
+
 A test runner using the provided simple IDE reporter would like like this:
 ```C++
 #include "../cute/cute.hpp"
@@ -28,6 +29,7 @@ int main_with_ide_reporter(int argc, char* argv[]) {
 
 Simple JUnit reporter
 =====================
+
 A test runner using the provided `JUnit` reporter would like like this:
 ```C++
 #include "../cute/cute.hpp"
