@@ -9,39 +9,39 @@
 #define CUTE_DETAIL_UNIQUE_NAME_LINE(NAME, LINE)    CUTE_DETAIL_UNIQUE_NAME_LINE_2(NAME, LINE)
 #define CUTE_DETAIL_UNIQUE_NAME(NAME)               CUTE_DETAIL_UNIQUE_NAME_LINE(NAME, __LINE__)
 
-#define CUTE_DETAIL_ASSERT(EXPR_EVAL, FILE, LINE, EXPR_TEXT, CAPS1, CAP2)                                                                       \
-    try {                                                                                                                                       \
-        ++cute::detail::eval_context::current().checks_performed;                                                                               \
-        if(!(EXPR_EVAL)) {                                                                                                                      \
-            cute::detail::eval_context::current().register_exception(cute::exception(EXPR_TEXT, FILE, LINE, "", CAPS1, CAP2));                  \
-        }                                                                                                                                       \
-    } catch(cute::exception const& ex) {                                                                                                        \
-        cute::detail::eval_context::current().register_exception(ex);                                                                           \
-    } catch(std::exception const &ex) {                                                                                                         \
-        cute::detail::eval_context::current().register_exception(                                                                               \
-            cute::exception("got an unexpected exception with message \"" + std::string(ex.what()) + "\"", FILE, LINE, EXPR_TEXT, CAPS1, CAP2)  \
-        );                                                                                                                                      \
-    } catch(...) {                                                                                                                              \
-        cute::detail::eval_context::current().register_exception(                                                                               \
-            cute::exception("got an unexpected exception of unknown type", FILE, LINE, EXPR_TEXT, CAPS1, CAP2)                                  \
-        );                                                                                                                                      \
+#define CUTE_DETAIL_ASSERT(EXPR_EVAL, FILE, LINE, EXPR_TEXT, CAPTURES1, CAPTURES2)                                                                      \
+    try {                                                                                                                                               \
+        ++cute::detail::eval_context::current().checks_performed;                                                                                       \
+        if(!(EXPR_EVAL)) {                                                                                                                              \
+            cute::detail::eval_context::current().register_exception(cute::exception(FILE, LINE, EXPR_TEXT, "", CAPTURES1, CAPTURES2));                 \
+        }                                                                                                                                               \
+    } catch(cute::exception const& ex) {                                                                                                                \
+        cute::detail::eval_context::current().register_exception(ex);                                                                                   \
+    } catch(std::exception const &ex) {                                                                                                                 \
+        cute::detail::eval_context::current().register_exception(                                                                                       \
+            cute::exception(FILE, LINE, "got an unexpected exception with message \"" + std::string(ex.what()) + "\"", EXPR_TEXT, CAPTURES1, CAPTURES2) \
+        );                                                                                                                                              \
+    } catch(...) {                                                                                                                                      \
+        cute::detail::eval_context::current().register_exception(                                                                                       \
+            cute::exception(FILE, LINE, "got an unexpected exception of unknown type", EXPR_TEXT, CAPTURES1, CAPTURES2)                                 \
+        );                                                                                                                                              \
     }
 
-#define CUTE_DETAIL_ASSERT_THROWS_AS(EXPR, EXCEPT)                                                                      \
-    {                                                                                                                   \
-        auto CUTE_DETAIL_UNIQUE_NAME(exception_ok) = false;                                                             \
-        try {                                                                                                           \
-            ++cute::detail::eval_context::current().checks_performed;                                                   \
-            static_cast<void>(EXPR);                                                                                    \
-        } catch(EXCEPT const&) {                                                                                        \
-            CUTE_DETAIL_UNIQUE_NAME(exception_ok) = true;                                                               \
-        } catch(...) {                                                                                                  \
-        }                                                                                                               \
-        if(!CUTE_DETAIL_UNIQUE_NAME(exception_ok)) {                                                                    \
-            cute::detail::eval_context::current().register_exception(                                                   \
-                cute::exception("didn't get an expected exception of type \"" #EXCEPT "\"", __FILE__, __LINE__, #EXPR)  \
-            );                                                                                                          \
-        }                                                                                                               \
+#define CUTE_DETAIL_ASSERT_THROWS_AS(EXPR, EXCEPT, CAPTURES)                                                                        \
+    {                                                                                                                               \
+        auto CUTE_DETAIL_UNIQUE_NAME(exception_ok) = false;                                                                         \
+        try {                                                                                                                       \
+            ++cute::detail::eval_context::current().checks_performed;                                                               \
+            static_cast<void>(EXPR);                                                                                                \
+        } catch(EXCEPT const&) {                                                                                                    \
+            CUTE_DETAIL_UNIQUE_NAME(exception_ok) = true;                                                                           \
+        } catch(...) {                                                                                                              \
+        }                                                                                                                           \
+        if(!CUTE_DETAIL_UNIQUE_NAME(exception_ok)) {                                                                                \
+            cute::detail::eval_context::current().register_exception(                                                               \
+                cute::exception(__FILE__, __LINE__, "didn't get an expected exception of type \"" #EXCEPT "\"", #EXPR, CAPTURES)    \
+            );                                                                                                                      \
+        }                                                                                                                           \
     }
 
 #define CUTE_DETAIL_INIT()                                                                                          \

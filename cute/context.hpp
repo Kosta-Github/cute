@@ -65,12 +65,12 @@ namespace cute {
 
                         auto const count_end = eval.checks_performed.load();
                         if(count_start == count_end) {
-                            eval.register_exception(cute::exception("no check performed in test case", test.file, test.line, ""));
+                            eval.register_exception(cute::exception(test.file, test.line, "no check performed in test case"));
                         }
 
                         // ensure that the temp folder can be cleared and that no file locks exists after the test case
                         if(!eval.delete_temp_folder()) {
-                            eval.register_exception(cute::exception("could not cleanup temp folder", test.file, test.line, ""));
+                            eval.register_exception(cute::exception(test.file, test.line, "could not cleanup temp folder"));
                         }
                     } catch(...) {
                         // nothing to do
@@ -109,7 +109,7 @@ namespace cute {
 
             if(auto test = ctx.current_test) {
                 auto rep = test_result(*test, result_type::fatal);
-                rep.excp = std::make_shared<exception>("std::terminate() called", test->file, test->line, "");
+                rep.excp = std::make_shared<exception>(test->file, test->line, "std::terminate() called");
 
                 for(auto&& reporter : *ctx.reporters) {
                     if(reporter) { reporter(rep, 0, 1); }

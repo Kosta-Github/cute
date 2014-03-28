@@ -43,7 +43,9 @@ namespace cute {
         }
 
         auto test_header = detail::ide_make_file_line_string(res.test.file, res.test.line) + type;
-        os << test_header << res.test.name << " [" << (test_index_cur + 1) << "/" << test_index_max << "]" << std::endl;
+        os << test_header << res.test.name;
+        if(test_index_max > 1) { os << " [" << (test_index_cur + 1) << "/" << test_index_max << "]"; }
+        os << std::endl;
 
         if(res.result != result_type::skip) {
             os << test_header << "    duration:   " << res.duration_ms << " ms" << std::endl;
@@ -52,8 +54,8 @@ namespace cute {
         if(auto ex = res.excp.get()) {
             auto ex_header = detail::ide_make_file_line_string(ex->file, ex->line) + type;
 
-            os << ex_header << "    reason:     " << ex->what() << std::endl;
-            if(!ex->expr.empty()) { os << ex_header << "    expression: " << ex->expr << std::endl; }
+            os << ex_header << "    reason:     " << ex->message << std::endl;
+            if(!ex->expression.empty()) { os << ex_header << "    expression: " << ex->expression << std::endl; }
 
             for(auto&& c : ex->captures.list) {
                 os << ex_header << "    with:       " << c.name;

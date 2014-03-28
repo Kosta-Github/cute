@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "reporter_ide.hpp"
 #include "../test_result.hpp"
 #include "../test_suite_result.hpp"
 
@@ -56,11 +57,14 @@ namespace cute {
                     default:                    assert(false);
                 }
 
+                std::ostringstream text;
+                reporter_ide(text, test, 0, 1);
+
                 out << "      <error ";
                 out <<        "type=\"" << type << "\" ";
-                out <<        "message=\"" << xml_encode(ex->what()) << "\" ";
+                out <<        "message=\"" << xml_encode(ex->message) << "\" ";
                 out <<        ">" << std::endl;
-                out << "at " << xml_encode(ex->file) << ":" << ex->line << std::endl;
+                out << xml_encode(text.str());
                 out << "      </error>" << std::endl;
             }
 

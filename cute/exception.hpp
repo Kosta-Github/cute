@@ -7,32 +7,37 @@
 
 #include "capture.hpp"
 
-#include <stdexcept>
+#include <cassert>
 #include <string>
-#include <vector>
 
 namespace cute {
 
-    struct exception : std::runtime_error {
+    // The cute exception is not derived from std::exception by intend,
+    // otherwise we could not differentiate within CUTE_THROWS_AS()
+    // between expected std::exceptions and cute::exceptions.
+    struct exception {
         std::string const file;
         int const line;
-        std::string const expr;
+        std::string const message;
+        std::string const expression;
         cute::captures const captures;
 
         inline exception(
-            std::string msg_,
             std::string file_,
             int line_,
-            std::string expr_,
+            std::string message_,
+            std::string expression_ = "",
             cute::captures caps1_ = cute::captures(),
             cute::captures caps2_ = cute::captures()
         ) :
-            std::runtime_error(std::move(msg_)),
             file(std::move(file_)),
             line(std::move(line_)),
-            expr(std::move(expr_)),
+            message(std::move(message_)),
+            expression(std::move(expression_)),
             captures(std::move(caps1_), std::move(caps2_))
-        { }
+        {
+            assert(!message.empty());
+        }
     };
 
 } // namespace cute
