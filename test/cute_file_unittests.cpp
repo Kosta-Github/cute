@@ -35,7 +35,7 @@ CUTE_TEST("a test should fail if the temp folder could not be deleted afterwards
     // static => keep a file lock around even after the test
     // in order to verify that the test fails if the temp folder
     // could not completely cleaned up again
-    static auto hold_me = std::make_shared<std::ofstream>(folder + "file_1");
+    static auto keep_alive = std::make_shared<std::ofstream>(folder + "file_1");
 
     // we cannot have a test case without an actual check/assert in it => add a dummy check
     CUTE_ASSERT(true);
