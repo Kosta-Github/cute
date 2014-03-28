@@ -7,7 +7,7 @@
 
 #include "../test_result.hpp"
 
-#include <ostream>
+#include <iostream>
 
 namespace cute {
 
@@ -27,8 +27,8 @@ namespace cute {
 
     } // namespace detail
 
-    inline void reporter_ide(
-        std::ostream& os,
+    inline void reporter_ide_to_stream(
+        std::ostream& out,
         test_result const& res,
         std::size_t test_index_cur,
         std::size_t test_index_max
@@ -43,26 +43,53 @@ namespace cute {
         }
 
         auto test_header = detail::ide_make_file_line_string(res.test.file, res.test.line) + type;
-        os << test_header << res.test.name;
-        if(test_index_max > 1) { os << " [" << (test_index_cur + 1) << "/" << test_index_max << "]"; }
-        os << std::endl;
+        out << test_header << res.test.name;
+        if(test_index_max > 1) { out << " [" << (test_index_cur + 1) << "/" << test_index_max << "]"; }
+        out << std::endl;
 
         if(res.result != result_type::skip) {
-            os << test_header << "    duration:   " << res.duration_ms << " ms" << std::endl;
+            out << test_header << "    duration:   " << res.duration_ms << " ms" << std::endl;
         }
 
         if(auto ex = res.excp.get()) {
             auto ex_header = detail::ide_make_file_line_string(ex->file, ex->line) + type;
 
-            os << ex_header << "    reason:     " << ex->message << std::endl;
-            if(!ex->expression.empty()) { os << ex_header << "    expression: " << ex->expression << std::endl; }
+            out << ex_header << "    reason:     " << ex->message << std::endl;
+            if(!ex->expression.empty()) { out << ex_header << "    expression: " << ex->expression << std::endl; }
 
             for(auto&& c : ex->captures.list) {
-                os << ex_header << "    with:       " << c.name;
-                if(c.name != c.value) { os << " => " << c.value; }
-                os << std::endl;
+                out << ex_header << "    with:       " << c.name;
+                if(c.name != c.value) { out << " => " << c.value; }
+                out << std::endl;
             }
         }
+    }
+
+    inline void reporter_ide(
+        test_result const& res,
+        std::size_t test_index_cur,
+        std::size_t test_index_max
+    ) {
+        reporter_ide_to_stream((res.result == result_type::pass) ? std::cout : std::cerr, res, test_index_cur, test_index_max);
+    }
+
+    inline void reporter_ide_summary_to_stream(
+        std::ostream& out,
+        test_suite_result const& results
+    ) {
+        out << std::endl;
+        out << "test suite summary:" << std::endl;
+        out << results.test_cases_passed    << " out of " << results.test_results.size() << " tests passed."    << std::endl;
+        out << results.test_cases_skipped   << " out of " << results.test_results.size() << " tests skipped."   << std::endl;
+        out << results.test_cases_failed    << " out of " << results.test_results.size() << " tests failed."    << std::endl;
+        out << results.checks_performed     << " checks performed."                                             << std::endl;
+        out << results.duration_ms          << " ms used for the whole test suite."                             << std::endl;
+    }
+
+    inline void reporter_ide_summary(
+        test_suite_result const& results
+    ) {
+        reporter_ide_summary_to_stream((results.test_cases_failed > 0) ? std::cout : std::cerr, results);
     }
 
 } // namespace cute

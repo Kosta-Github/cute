@@ -58,7 +58,7 @@ namespace cute {
                 }
 
                 std::ostringstream text;
-                reporter_ide(text, test, 0, 1);
+                reporter_ide_to_stream(text, test, 0, 1);
 
                 out << "      <error ";
                 out <<        "type=\"" << type << "\" ";
@@ -80,7 +80,7 @@ namespace cute {
 
     } // namespace detail
 
-    inline std::ostream& reporter_junit(
+    inline std::ostream& reporter_junit_summary(
         std::ostream& out,
         test_suite_result const& suite
     ) {
