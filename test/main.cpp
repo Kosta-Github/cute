@@ -4,6 +4,7 @@
 //
 
 #include "../cute/cute.hpp"
+#include "../cute/reporters/reporter_dot_progress.hpp"
 #include "../cute/reporters/reporter_ide.hpp"
 #include "../cute/reporters/reporter_junit.hpp"
 

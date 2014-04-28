@@ -44,6 +44,7 @@ add_executable(
     ../cute/detail/test_registry.hpp
     ../cute/detail/utils.hpp
     ../cute/detail/utils_file.hpp
+    ../cute/reporters/reporter_dot_progress.hpp
     ../cute/reporters/reporter_ide.hpp
     ../cute/reporters/reporter_junit.hpp
 )
