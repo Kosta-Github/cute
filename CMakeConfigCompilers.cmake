@@ -18,5 +18,5 @@ endif()
 # check for adding a reference to the pthread lib
 find_package(Threads REQUIRED)
 if(CMAKE_USE_PTHREADS_INIT)
-    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif(CMAKE_USE_PTHREADS_INIT)
