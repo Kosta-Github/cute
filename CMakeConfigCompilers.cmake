@@ -16,7 +16,7 @@ elseif(MSVC)
 endif()
 
 # check for adding a reference to the pthread lib
-#CHECK_CXX_COMPILER_FLAG("-pthread" HAS_PTHREAD)
-#if(HAS_PTHREAD)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-#endif(HAS_PTHREAD)
+find_package(Threads REQUIRED)
+if(CMAKE_USE_PTHREADS_INIT)
+    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread")
+endif(CMAKE_USE_PTHREADS_INIT)

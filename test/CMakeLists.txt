@@ -13,14 +13,6 @@ if(CUTE_HAS_NOEXCEPT)
     add_definitions(-DCUTE_HAS_NOEXCEPT)
 endif(CUTE_HAS_NOEXCEPT)
 
-# check for adding a reference to the pthread lib
-#CHECK_CXX_COMPILER_FLAG("-pthread" CUTE_HAS_PTHREAD)
-#if(CUTE_HAS_PTHREAD)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-#endif(CUTE_HAS_PTHREAD)
-
-find_package(Threads)
-
 add_executable(
     cute_unittests
     main.cpp
