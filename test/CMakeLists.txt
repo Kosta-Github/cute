@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 project(cute CXX)
 message("configure: cute unit tests")
 
+# check for "noexcept" support
 include(CheckCXXSourceCompiles)
 CHECK_CXX_SOURCE_COMPILES(
     "struct A { A() noexcept { } }; int main(int argc, const char* argv[]) { return 0; }"
@@ -13,10 +14,12 @@ if(CUTE_HAS_NOEXCEPT)
 endif(CUTE_HAS_NOEXCEPT)
 
 # check for adding a reference to the pthread lib
-CHECK_CXX_COMPILER_FLAG("-pthread" CUTE_HAS_PTHREAD)
-if(CUTE_HAS_PTHREAD)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-endif(CUTE_HAS_PTHREAD)
+#CHECK_CXX_COMPILER_FLAG("-pthread" CUTE_HAS_PTHREAD)
+#if(CUTE_HAS_PTHREAD)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+#endif(CUTE_HAS_PTHREAD)
+
+find_package(Threads)
 
 add_executable(
     cute_unittests
@@ -48,6 +51,11 @@ add_executable(
     ../cute/reporters/reporter_dot_progress.hpp
     ../cute/reporters/reporter_ide.hpp
     ../cute/reporters/reporter_junit.hpp
+)
+
+target_link_libraries(
+    cute_unittests
+	${CMAKE_THREAD_LIBS_INIT}
 )
      
 add_test(
