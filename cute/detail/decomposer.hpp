@@ -39,7 +39,7 @@ namespace cute {
             };
 
             template<typename T>
-            inline expression<T const&> operator->*(T const& op) const { return expression<T const&>(op); }
+            inline expression<T const&> operator<=(T const& op) const { return expression<T const&>(op); }
         };
 
     } // namespace detail

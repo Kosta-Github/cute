@@ -59,4 +59,4 @@
         ));                                                                             \
     static void CUTE_DETAIL_UNIQUE_NAME(cute_detail_test)()
 
-#define CUTE_DETAIL_DECOMPOSE(EXPR) static_cast<std::string>(cute::detail::decomposer()->* EXPR)
+#define CUTE_DETAIL_DECOMPOSE(EXPR) static_cast<std::string>(cute::detail::decomposer() <= EXPR)

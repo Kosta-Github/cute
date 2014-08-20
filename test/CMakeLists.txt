@@ -23,6 +23,7 @@ add_executable(
     main.cpp
     cute_cleanup_guard_unittests.cpp
     cute_core_unittests.cpp
+    cute_decomposer_unittests.cpp
     cute_file_unittests.cpp
     cute_thread_unittests.cpp
     cute_xml_unittests.cpp
