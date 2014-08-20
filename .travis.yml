@@ -18,5 +18,5 @@ install:
   - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG
 
 script:
-  - make -k && ctest -V --timeout 60
+  - make -k && ctest -V --timeout 30
 
