@@ -25,6 +25,9 @@ namespace cute {
         std::size_t duration_ms;
         std::shared_ptr<exception const> excp;
 
+        std::string captured_cout;
+        std::string captured_cerr;
+
         inline test_result(
             cute::test test_,
             result_type result_ = result_type::pass,

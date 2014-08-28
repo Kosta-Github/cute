@@ -66,3 +66,9 @@ CUTE_TEST("CUTE_ASSERT() can capture more than one variable with the help of CUT
     auto str2 = std::string("world");
     CUTE_ASSERT(str1 == str2, CUTE_CAPTURE(str1), CUTE_CAPTURE(str2));
 }
+
+CUTE_TEST("output to std::cout and std::cerr should be captured", "fail") {
+    std::cout << "Test output to std::cout..." << std::endl;
+    std::cerr << "Test output to std::cerr..." << std::endl;
+    CUTE_ASSERT(false);
+}

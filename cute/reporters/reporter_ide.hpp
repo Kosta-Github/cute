@@ -43,8 +43,9 @@ namespace cute {
         }
 
         auto test_header = detail::ide_make_file_line_string(res.test.file, res.test.line) + type;
-        out << test_header << res.test.name;
-        if(test_index_max > 1) { out << " [" << (test_index_cur + 1) << "/" << test_index_max << "]"; }
+        out << test_header;
+        if(test_index_max > 1) { out << "[" << (test_index_cur + 1) << "/" << test_index_max << "] "; }
+        out << res.test.name;
         if(res.result != result_type::skip) {
             out << "; duration: " << res.duration_ms << " ms";
         }

@@ -15,6 +15,8 @@
 #include "detail/test_registry.hpp"
 
 #include <cstdlib>
+#include <iostream>
+#include <sstream>
 
 namespace cute {
 
@@ -55,6 +57,19 @@ namespace cute {
                 rep.result = (skip ? result_type::skip : result_type::pass);
 
                 if(!skip) {
+
+                    // redirect "cout" output to "capture_cout"
+                    std::ostringstream capture_cout; 
+                    auto old_buf_cout = std::cout.rdbuf();
+                    auto restore_cout = cute::cleanup_guard([&]() { std::cout.rdbuf(old_buf_cout); });
+                    std::cout.rdbuf(capture_cout.rdbuf());
+
+                    // redirect "cerr" output to "capture_cerr"
+                    std::ostringstream capture_cerr; 
+                    auto old_buf_cerr = std::cerr.rdbuf();
+                    auto restore_cerr = cute::cleanup_guard([&]() { std::cerr.rdbuf(old_buf_cerr); });
+                    std::cerr.rdbuf(capture_cerr.rdbuf());
+
                     auto const time_start = detail::time_now();
 
                     try {
@@ -86,6 +101,9 @@ namespace cute {
                         rep.result = result_type::fail;
                         rep.excp = std::move(eval.excp);
                     }
+
+                    rep.captured_cout = capture_cout.str();
+                    rep.captured_cerr = capture_cerr.str();
                 }
 
                 for(auto&& reporter : reporters) {

@@ -30,7 +30,7 @@ namespace cute {
             std::ostream& out,
             test_result const& test
         ) {
-            // extract bse filename part from full source filename
+            // extract base filename part from full source filename
             auto name = test.test.file;
             auto pos1 = name.find_last_of("/\\");
             if(pos1 != name.npos) { name = name.substr(pos1 + 1); }
@@ -66,6 +66,18 @@ namespace cute {
                 out <<        ">" << std::endl;
                 out << xml_encode(text.str());
                 out << "      </error>" << std::endl;
+            }
+
+            if(!test.captured_cout.empty()) {
+                out << "      <system-out>" << std::endl;
+                out << xml_encode(test.captured_cout) << std::endl;
+                out << "      </system-out>" << std::endl;
+            }
+
+            if(!test.captured_cerr.empty()) {
+                out << "      <system-err>" << std::endl;
+                out << xml_encode(test.captured_cerr) << std::endl;
+                out << "      </system-err>" << std::endl;
             }
 
             out << "    </testcase>" << std::endl;
