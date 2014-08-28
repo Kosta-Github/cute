@@ -59,16 +59,22 @@ namespace cute {
                 if(!skip) {
 
                     // redirect "cout" output to "capture_cout"
-                    std::ostringstream capture_cout; 
+                    std::ostringstream capture_cout;
                     auto old_buf_cout = std::cout.rdbuf();
                     auto restore_cout = cute::cleanup_guard([&]() { std::cout.rdbuf(old_buf_cout); });
                     std::cout.rdbuf(capture_cout.rdbuf());
 
                     // redirect "cerr" output to "capture_cerr"
-                    std::ostringstream capture_cerr; 
+                    std::ostringstream capture_cerr;
                     auto old_buf_cerr = std::cerr.rdbuf();
                     auto restore_cerr = cute::cleanup_guard([&]() { std::cerr.rdbuf(old_buf_cerr); });
                     std::cerr.rdbuf(capture_cerr.rdbuf());
+
+                    // redirect "clog" output to "capture_cerr" as well
+                    std::ostringstream& capture_clog = capture_cerr;
+                    auto old_buf_clog = std::clog.rdbuf();
+                    auto restore_clog = cute::cleanup_guard([&]() { std::clog.rdbuf(old_buf_clog); });
+                    std::clog.rdbuf(capture_clog.rdbuf());
 
                     auto const time_start = detail::time_now();
 

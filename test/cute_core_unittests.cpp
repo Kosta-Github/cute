@@ -70,5 +70,6 @@ CUTE_TEST("CUTE_ASSERT() can capture more than one variable with the help of CUT
 CUTE_TEST("output to std::cout and std::cerr should be captured", "fail") {
     std::cout << "Test output to std::cout..." << std::endl;
     std::cerr << "Test output to std::cerr..." << std::endl;
+    std::clog << "Test output to std::clog..." << std::endl;
     CUTE_ASSERT(false);
 }
