@@ -13,6 +13,7 @@
 #   include <Windows.h>
 #   include <direct.h>
 #else // defined(WIN32)
+#   include <cstdlib>
 #   include <dirent.h>
 #   include <sys/stat.h>
 #   include <unistd.h>
