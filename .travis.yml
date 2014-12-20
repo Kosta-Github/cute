@@ -15,7 +15,7 @@ before_install:
   - sudo travis-setup/update-gcc-latest.sh
 
 install:
-  - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG
+  - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DCMAKE_CXX_FLAGS="-Wl,--no-as-needed"
 
 script:
   - make -k && ctest -V --timeout 30
