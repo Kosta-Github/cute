@@ -1,0 +1,18 @@
+version: 1.0.{build}
+
+configuration:
+- Debug
+- Release
+
+platform: x64
+
+before_build:
+- config-win64.bat
+
+build:
+  project: Build\cute.sln
+  parallel: true
+  verbosity: minimal
+
+test_script:
+- cd Build && ctest --verbose --timeout 120 --build-config %CONFIGURATION%
