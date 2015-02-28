@@ -1,7 +1,17 @@
-cute: C++ unit test executor [![Build Status](https://travis-ci.org/Kosta-Github/cute.png)](https://travis-ci.org/Kosta-Github/cute)
+cute: C++ unit test executor
 ============================
 
-Feature set:
+Builds
+======
+
+| System   | Status |
+|----------|--------|
+| Travis   | [![Build Status](https://travis-ci.org/Kosta-Github/cute.png)](https://travis-ci.org/Kosta-Github/cute) |
+| AppVeyor | [![Build status](https://ci.appveyor.com/api/projects/status/cbbif128rsgunje9/branch/master?svg=true)](https://ci.appveyor.com/project/Kosta-Github/cute/branch/master) |
+
+Feature set
+===========
+
 - uses C++11 features
 - no external dependencies
 - header-only
