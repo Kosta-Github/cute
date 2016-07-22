@@ -28,7 +28,7 @@ CUTE_TEST("Capture additional values") {
     auto str2 = std::string("world");
     auto value = 42;
     CUTE_ASSERT(str1 == str2,
-        CUTE_CAPTURE(str1.length()),
+        CUTE_CAPTURE(str1.size()),
         CUTE_CAPTURE(str2.capacity()),
         CUTE_CAPTURE(value)
     );
