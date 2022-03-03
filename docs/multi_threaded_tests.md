@@ -1,5 +1,4 @@
-Multi-threaded tests
-====================
+# Multi-threaded tests
 
 When writing multi-threaded test cases the following pitfalls needs to be avoided:
 
@@ -7,7 +6,7 @@ When writing multi-threaded test cases the following pitfalls needs to be avoide
 
 2. `std::thread`s need to be joined before their lifetime ends otherwise it leads to calling `std::terminate()`: `cute::thread` can be used for this purpose as well, since it ensures proper joining of the wrapped `std::thread` prior to it's destruction.
 
-3. Test validation calls are not thread safe: `cute` has been designed right from it's beginning with multi-threading in mind and all test validation calls can be safely used in arbitrary threads.
+3. Test validation calls are thread safe: `cute` has been designed right from it's beginning with multi-threading in mind and all test validation calls can be safely used in arbitrary threads.
 
 ```C++
 CUTE_TEST("A passed check in a separate thread is detected") {
@@ -25,8 +24,6 @@ CUTE_TEST("An unhandled exception in a cute::thread is detected") {
 }
 ```
 
-
-TODO
-====
+## TODO
 
 - describe usage of `cute::tick`

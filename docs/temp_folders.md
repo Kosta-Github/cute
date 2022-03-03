@@ -1,5 +1,4 @@
-Temporary output folder
-=======================
+# Temporary output folder
 
 Although it is best to avoid writing tests which creates files in the local filesystem, but nevertheless there are certain cases in which it could come in handy to be able to dump out some temp files into the file system during testing.
 
@@ -20,9 +19,11 @@ CUTE_TEST("The temp folder should be deleted after a test case") {
     CUTE_ASSERT(true);
 }
 ```
+
 All created files get deleted automatically again.
 
 The following test will fail under `Windows` since it holds on the file lock even beyond the end of the test case.
+
 ```C++
 CUTE_TEST("A test should fail if the temp folder could not be deleted afterwards (Windows only)") {
     auto folder = cute::temp_folder();
@@ -36,8 +37,10 @@ CUTE_TEST("A test should fail if the temp folder could not be deleted afterwards
     CUTE_ASSERT(true);
 }
 ```
+
 The output will look like this:
-```
+
+```text
 .../cute_tests.cpp:10: error:  test should fail if the temp folder could not be deleted afterwards (Windows only)
 .../cute_tests.cpp:10: error:     duration:   0 ms
 .../cute_tests.cpp:10: error:     reason:     could not cleanup temp folder

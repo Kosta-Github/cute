@@ -1,7 +1,9 @@
-Simple IDE reporter
-===================
+# Reporters
 
-A test runner using the provided simple IDE reporter would like like this:
+## Simple IDE reporter
+
+A test runner using the provided simple IDE reporter would look like this:
+
 ```C++
 #include <cute/cute.hpp>
 #include <cute/reporters/reporter_ide.hpp>
@@ -26,11 +28,10 @@ int main_with_ide_reporter(int argc, char* argv[]) {
 }
 ```
 
-
-Simple JUnit reporter
-=====================
+## Simple JUnit reporter
 
 A test runner using the provided `JUnit` reporter would like like this:
+
 ```C++
 #include <cute/cute.hpp>
 #include <cute/reporters/reporter_junit.hpp>

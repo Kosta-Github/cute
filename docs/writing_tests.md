@@ -1,7 +1,7 @@
-A simple test case
-==================
+# A simple test case
 
 A very simple failing test case would look like this:
+
 ```C++
 CUTE_TEST("Test two strings for equality") {
     auto str1 = std::string("hello");
@@ -9,19 +9,20 @@ CUTE_TEST("Test two strings for equality") {
     CUTE_ASSERT(str1 == str2);
 }
 ```
+
 This would produce the following output with the provided IDE reporter:
-```
+
+```text
 .../cute_tests.cpp:64: error: Test two strings for equality
 .../cute_tests.cpp:64: error:     duration:   0 ms
 .../cute_tests.cpp:67: error:     reason:     validation failed: str1 == str2
 .../cute_tests.cpp:67: error:     with:       str1 == str2 => "hello" == "world"
 ```
 
-
-Capturing additional values
-===========================
+## Capturing additional values
 
 Capturing additional values and reporting them in case of an error can be achieved by adding some `CUTE_CAPTURE()` calls to `CUTE_ASSERT()`:
+
 ```C++
 CUTE_TEST("Capture additional values") {
     auto str1 = std::string("hello");
@@ -34,8 +35,10 @@ CUTE_TEST("Capture additional values") {
     );
 }
 ```
+
 This would produce the following output with the provided IDE reporter:
-```
+
+```text
 .../cute_tests.cpp:70: error: Capture additional values
 .../cute_tests.cpp:70: error:     duration:   0 ms
 .../cute_tests.cpp:79: error:     reason:     validation failed: str1 == str2
@@ -45,9 +48,7 @@ This would produce the following output with the provided IDE reporter:
 .../cute_tests.cpp:79: error:     with:       value => 42
 ```
 
-
-Supported validation macros
-===========================
+## Supported validation macros
 
 The following macros can be used for validation within a test case:
 
@@ -60,9 +61,8 @@ macro                             | validation
 
 Each validation macro can be extended by several `CUTE_CAPTURE()` occurrences in order to capture additional values and provide more context information in case of a failure.
 
+## Misc
 
-Misc
-==== 
 Note that `cute` stops a test case by throwing an `exception` as soon as a violation of a `CUTE_ASSERT*()` is detected.
 
 If a `CUTE_TEST` does not trigger any validation during it's execution the test is reported as failed as well, since this usually indicates an error in test implementation.
